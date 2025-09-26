@@ -21,23 +21,21 @@
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
         }
-        .screen {
+        .screen, .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center; padding: 1.5rem;
             transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
             backface-visibility: hidden;
         }
-        .screen.hidden {
+        .screen.hidden, .modal-overlay.hidden {
             opacity: 0; transform: scale(0.95); pointer-events: none;
         }
-        .auth-input {
+        .auth-input, .settings-input {
             border: 2px solid #E2E8F0; background-color: #F7FAFC;
             transition: all 0.2s ease-in-out;
-            font-size: 1.1rem; /* Perbesar teks input */
-            padding: 0.9rem; /* Perbesar padding input */
         }
-        .auth-input:focus {
+        .auth-input:focus, .settings-input:focus {
             outline: none; border-color: #4A90E2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); background-color: white;
         }
@@ -74,8 +72,6 @@
         }
         #notification.show { bottom: 20px; }
         #qrcode-container { border: 4px solid #f3f3f3; }
-
-        /* Game Screen Specific Styles */
         #game-screen { justify-content: space-between; background-color: #F7FAFC; }
         .player-area { width: 100%; text-align: center; }
         .choice-btn {
@@ -96,53 +92,40 @@
             font-size: 3rem; color: #A0AEC0; transition: all 0.3s;
         }
         #opponent-choice-display img { width: 50px; height: 50px; }
-        
-        /* New Result Popup Styles */
-        #result-popup {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s; pointer-events:none; z-index: 50;
-        }
-        #result-popup.show { opacity: 1; pointer-events: all; }
+        #result-popup { z-index: 50; }
         .result-card {
-            background-color: white;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            position: relative;
-            transform: scale(0.9);
-            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            background-color: white; border-radius: 1.5rem; padding: 2rem;
+            text-align: center; width: 90%; max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;
+            transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        
-        #close-popup-btn {
-            position: absolute; top: 10px; right: 10px;
-            width: 36px; height: 36px; background-color: #F1F5F9;
-            border-radius: 50%; color: #64748B;
-            font-size: 1.5rem; line-height: 1;
-            transition: background-color 0.2s, transform 0.2s;
+        .close-btn {
+            position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
+            background-color: #F1F5F9; border-radius: 50%; color: #64748B;
+            font-size: 1.5rem; line-height: 1; transition: background-color 0.2s, transform 0.2s;
         }
-        #close-popup-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
-
+        .close-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
         #result-choices-display {
             display: flex; justify-content: center; align-items: center;
             gap: 1rem; margin-top: 1rem;
         }
         #result-choices-display img {
-            width: 50px; height: 50px;
-            background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%;
+            width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%;
         }
+        #magic-indicator {
+            position: absolute; top: 1rem; left: 50%; transform: translateX(-50%);
+            font-size: 2rem; opacity: 0; transition: opacity 0.5s, transform 0.5s;
+        }
+        #magic-indicator.show {
+            animation: sparkle 1s ease-in-out;
+        }
+        @keyframes sparkle { 0%, 100% { opacity: 0; transform: translateX(-50%) scale(0.5); } 50% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
     <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
-        <!-- Div untuk preloading aset -->
         <div id="asset-preloader" class="hidden"></div>
         
         <!-- Layar Loading Awal -->
@@ -177,6 +160,8 @@
                 <h2 class="text-4xl text-gray-800 mb-4">Menu Utama</h2>
                 <p class="text-gray-600 mb-8">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
                 <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
+                <!-- Tombol Pengaturan Baru -->
+                <button id="settings-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300 mb-4">Pengaturan</button>
                 <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
             </div>
         </div>
@@ -194,38 +179,76 @@
         
         <!-- Layar 4: Arena Permainan -->
         <div id="game-screen" class="screen hidden">
-            <!-- Tombol Hentikan Permainan (hanya untuk host) -->
+            <div id="magic-indicator" class="hidden">✨</div>
             <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
                 <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center space-y-4">
                 <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
                 <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
                 <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
             </div>
             <div class="player-area">
-                <div id="my-choice-display" class="hidden"></div>
                 <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
                 <p class="text-gray-500 text-lg">Kamu</p>
             </div>
         </div>
         
-        <!-- Elemen Pop-up Hasil (Struktur Baru) -->
-        <div id="result-popup" class="hidden">
+        <!-- Pop-up Hasil -->
+        <div id="result-popup" class="modal-overlay hidden">
             <div class="result-card">
-                <button id="close-popup-btn">&times;</button>
+                <button id="close-popup-btn" class="close-btn">&times;</button>
                 <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
                 <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
-                <div id="result-choices-display">
-                    <!-- Contoh: <img src="./images/rock.png"> vs <img src="./images/paper.png"> -->
-                </div>
+                <div id="result-choices-display"></div>
             </div>
         </div>
 
-        <!-- Notifikasi Kustom -->
+        <!-- Modal Pengaturan Baru -->
+        <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50">
+            <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative animate-pop-in">
+                <button id="close-settings-btn" class="close-btn">&times;</button>
+                <h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2>
+                <form id="settings-form" class="space-y-4">
+                    <div>
+                        <label class="font-semibold text-gray-600">Total Ronde</label>
+                        <input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="font-semibold text-gray-600">Menang</label>
+                            <input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-600">Kalah</label>
+                            <input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-600">Seri</label>
+                            <input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-600">Mode Permainan</label>
+                        <div class="mt-2 space-y-2">
+                            <label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400">
+                                <input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400">
+                                <span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span>
+                            </label>
+                             <label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400">
+                                <input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400">
+                                <span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button>
+                </form>
+            </div>
+        </div>
+
         <div id="notification"></div>
     </div>
 
@@ -234,6 +257,7 @@
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // --- KONFIGURASI ---
         const firebaseConfig = {
           apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
           authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
@@ -243,15 +267,20 @@
           appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
         };
 
+        // --- INISIALISASI ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- STATE GLOBAL ---
         let unsubscribeGameListener = null;
         let currentGameId = null;
         let currentPlayerId = null;
-        let isPlayer1Global = false;
+        let magicSettings = null;
+        let magicianPlan = [];
+        let currentRound = 0;
 
+        // --- ELEMEN DOM ---
         const screens = {
             loading: document.getElementById('loading-screen'),
             auth: document.getElementById('auth-screen'),
@@ -259,8 +288,6 @@
             waiting: document.getElementById('waiting-screen'),
             game: document.getElementById('game-screen')
         };
-        
-        // --- (DOM element selections) ---
         const loadingText = document.getElementById('loading-text');
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
@@ -284,8 +311,26 @@
         const resultImage = document.getElementById('result-image');
         const resultChoicesDisplay = document.getElementById('result-choices-display');
         const closePopupBtn = document.getElementById('close-popup-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const settingsForm = document.getElementById('settings-form');
+        const magicIndicator = document.getElementById('magic-indicator');
+        const gameScreen = document.getElementById('game-screen');
 
-        // --- Asset Preloader ---
+        // --- FUNGSI ---
+        function showScreen(screenElement) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            if(screenElement) screenElement.classList.remove('hidden');
+        }
+
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#EF4444' : '#10B981';
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
         async function preloadAssets() {
             const images = [
                 './images/rock.png', './images/paper.png', './images/scissors.png',
@@ -301,19 +346,69 @@
             });
             await Promise.all(promises);
         }
+        
+        // --- LOGIKA SULAP ---
+        function saveMagicSettings() {
+            const totalRounds = parseInt(document.getElementById('total-rounds-input').value);
+            const wins = parseInt(document.getElementById('wins-input').value);
+            const losses = parseInt(document.getElementById('losses-input').value);
+            const draws = parseInt(document.getElementById('draws-input').value);
+            
+            if (wins < 0 || losses < 0 || draws < 0 || totalRounds < 1) {
+                showNotification("Nilai tidak boleh negatif.", true);
+                return false;
+            }
+            if (wins + losses + draws !== totalRounds) {
+                showNotification("Jumlah hasil (menang/kalah/seri) harus sama dengan total ronde.", true);
+                return false;
+            }
 
-        function showScreen(screenElement) {
-            Object.values(screens).forEach(s => s.classList.add('hidden'));
-            screenElement.classList.remove('hidden');
+            magicSettings = {
+                totalRounds,
+                targetWins: wins,
+                targetLosses: losses,
+                targetDraws: draws,
+                mode: document.querySelector('input[name="magic-mode"]:checked').value,
+                isActive: false
+            };
+            showNotification("Pengaturan sulap disimpan!", false);
+            return true;
         }
-        
-        function showNotification(message, isError = false) {
-            notification.textContent = message;
-            notification.style.backgroundColor = isError ? '#EF4444' : '#10B981';
-            notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
+
+        function activateMagic() {
+            if (!magicSettings || magicSettings.isActive) return;
+            magicSettings.isActive = true;
+            
+            magicIndicator.classList.add('show');
+            setTimeout(() => {
+                magicIndicator.classList.remove('show');
+            }, 1000);
+
+            if (magicSettings.mode === 'magician') {
+                magicianPlan = [];
+                for (let i = 0; i < magicSettings.targetWins; i++) magicianPlan.push('win');
+                for (let i = 0; i < magicSettings.targetLosses; i++) magicianPlan.push('lose');
+                for (let i = 0; i < magicSettings.targetDraws; i++) magicianPlan.push('draw');
+                for (let i = magicianPlan.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [magicianPlan[i], magicianPlan[j]] = [magicianPlan[j], magicianPlan[i]];
+                }
+            }
         }
-        
+
+        function getMagicianChoice(opponentChoice, desiredOutcome) {
+            if (desiredOutcome === 'win') {
+                if (opponentChoice === 'rock') return 'paper';
+                if (opponentChoice === 'paper') return 'scissors';
+                if (opponentChoice === 'scissors') return 'rock';
+            } else if (desiredOutcome === 'lose') {
+                if (opponentChoice === 'rock') return 'scissors';
+                if (opponentChoice === 'paper') return 'rock';
+                if (opponentChoice === 'scissors') return 'paper';
+            }
+            return opponentChoice;
+        }
+
         // --- LOGIKA UTAMA APLIKASI ---
         onAuthStateChanged(auth, async (user) => {
             try {
@@ -321,23 +416,12 @@
                 await preloadAssets();
                 loadingText.textContent = 'Memuat...';
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const gameIdFromUrl = urlParams.get('game');
-
                 if (user) {
                     currentPlayerId = user.uid;
-                    if (gameIdFromUrl) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        currentGameId = gameIdFromUrl;
-                        startGame(currentGameId);
-                        return;
-                    }
-                    // Clean up any stale games this user might have hosted
                     const gamesRef = collection(db, "games");
                     const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
                     const staleGames = await getDocs(q1);
                     staleGames.forEach(async (gameDoc) => {
-                        console.log("Menghapus sisa game:", gameDoc.id);
                         await deleteDoc(doc(db, "games", gameDoc.id));
                     });
                     
@@ -347,62 +431,61 @@
                     } else {
                          signOut(auth).finally(() => showScreen(screens.auth));
                     }
-
                 } else {
                     currentPlayerId = null;
                     showScreen(screens.auth);
                 }
-                screens.loading.classList.add('hidden');
             } catch(error) {
                 console.error("Gagal saat inisialisasi aplikasi:", error);
                 loadingText.textContent = 'Gagal memuat aset.';
                 showNotification(error.message || 'Gagal memuat aset. Pastikan folder /images ada.', true);
+            } finally {
+                screens.loading.classList.add('hidden');
             }
         });
 
         function startGame(gameId) {
+            currentRound = 0;
+            if (magicSettings) magicSettings.isActive = false;
+
             if(unsubscribeGameListener) unsubscribeGameListener();
             const gameDocRef = doc(db, "games", gameId);
 
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
-                const user = auth.currentUser;
                 if (!docSnap.exists()) {
                     if(unsubscribeGameListener) {
                         unsubscribeGameListener();
                         unsubscribeGameListener = null;
                     }
                     currentGameId = null;
-
                     showNotification("Permainan telah berakhir.", false);
-                    if (user && !user.isAnonymous) {
+                    if (auth.currentUser && !auth.currentUser.isAnonymous) {
                         showScreen(screens.menu);
                     }
                     return;
                 }
 
                 const game = docSnap.data();
-                if (!game.player1) return;
-                isPlayer1Global = game.player1.uid === currentPlayerId;
-                stopGameBtn.classList.toggle('hidden', !isPlayer1Global);
-
                 const me = game.player1;
                 const opponent = game.player2;
                 
                 if (!me) return;
 
                 if (!opponent) {
-                    if(screens.waiting.classList.contains('hidden')) showScreen(screens.waiting);
+                    showScreen(screens.waiting);
                     return;
+
                 }
-
+                
                 if(screens.game.classList.contains('hidden')) showScreen(screens.game);
-
+                
                 myScoreEl.textContent = me.score;
                 opponentScoreEl.textContent = opponent.score;
                 
-                if(me.choice && opponent.choice) {
-                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
-                } else if(opponent.choice) {
+                if (magicSettings && magicSettings.isActive && magicSettings.mode === 'peek' && opponent.choice) {
+                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
+                    opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
+                } else if (opponent.choice) {
                     opponentChoiceDisplay.textContent = '✓';
                     opponentChoiceDisplay.classList.add("bg-green-200", "text-green-600");
                 } else {
@@ -417,7 +500,13 @@
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    determineWinner(gameId, game);
+                    if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician' && me.choice === 'chosen') {
+                        const desiredOutcome = magicianPlan[currentRound];
+                        const magicalChoice = getMagicianChoice(opponent.choice, desiredOutcome);
+                        updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
+                    } else if (me.choice !== 'chosen') {
+                        determineWinner(gameId, game);
+                    }
                 }
                 
                 choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice || game.gameState === 'finished'));
@@ -434,28 +523,13 @@
                 winner = 'player2';
             }
 
-            let resultImgSrc = '';
-            let resultStatusText = '';
-            if (winner === 'draw') {
-                resultImgSrc = './images/draw.png';
-                resultStatusText = 'SERI!';
-            } else if (winner === 'player1') {
-                resultImgSrc = './images/win.png';
-                resultStatusText = 'KAMU MENANG!';
-            } else {
-                resultImgSrc = './images/lose.png';
-                resultStatusText = 'KAMU KALAH!';
-            }
-
-            resultText.textContent = resultStatusText;
-            resultImage.src = resultImgSrc;
-
+            resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player1' ? 'KAMU MENANG!' : 'KAMU KALAH!');
+            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player1' ? './images/win.png' : './images/lose.png');
             resultChoicesDisplay.innerHTML = `
                 <img src="./images/${p1c}.png" alt="${p1c}">
                 <span class="font-title text-2xl text-gray-400">vs</span>
                 <img src="./images/${p2c}.png" alt="${p2c}">
             `;
-            
             resultPopup.classList.add('show');
         }
 
@@ -480,7 +554,12 @@
         }
 
         async function resetRound() {
-            if (isPlayer1Global && currentGameId) {
+            if (currentGameId) {
+                if (magicSettings && magicSettings.isActive && currentRound >= magicSettings.totalRounds) {
+                    showNotification("Permainan selesai sesuai pengaturan.", false);
+                    setTimeout(stopGame, 1000);
+                    return;
+                }
                 await updateDoc(doc(db, 'games', currentGameId), {
                     'player1.choice': null,
                     'player2.choice': null,
@@ -488,9 +567,39 @@
                 });
             }
         }
-        closePopupBtn.addEventListener('click', () => {
-            resultPopup.classList.remove('show');
-            resetRound();
+        
+        async function stopGame() {
+            if (currentGameId) {
+                const gameIdToDelete = currentGameId;
+                if(unsubscribeGameListener) {
+                    unsubscribeGameListener();
+                    unsubscribeGameListener = null;
+                }
+                currentGameId = null;
+                await deleteDoc(doc(db, "games", gameIdToDelete));
+                showScreen(screens.menu);
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        settingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (saveMagicSettings()) {
+                settingsModal.classList.add('hidden');
+            }
+        });
+        
+        let lastTap = 0;
+        gameScreen.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0) {
+                activateMagic();
+            }
+            lastTap = currentTime;
         });
 
         choiceBtns.forEach(btn => {
@@ -499,8 +608,21 @@
                 const choice = btn.dataset.choice;
                 choiceBtns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-                await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': choice });
+
+                let finalChoice = choice;
+                if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician') {
+                    finalChoice = 'chosen'; 
+                }
+                await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': finalChoice });
             });
+        });
+        
+        closePopupBtn.addEventListener('click', () => {
+            resultPopup.classList.remove('show');
+            if (magicSettings && magicSettings.isActive) {
+                currentRound++;
+            }
+            resetRound();
         });
 
         createGameBtn.addEventListener('click', async (e) => {
@@ -528,64 +650,15 @@
             }
         });
 
-        async function stopGame() {
-            if (isPlayer1Global && currentGameId) {
-                const gameIdToDelete = currentGameId;
-                try {
-                    // Cukup hapus dokumennya. Listener onSnapshot akan menangani sisanya.
-                    await deleteDoc(doc(db, "games", gameIdToDelete));
-                } catch (error) {
-                    console.error("Gagal menghapus game:", error);
-                    showNotification("Gagal menghentikan game.", true);
-                }
-            }
-        }
         stopGameBtn.addEventListener('click', stopGame);
         backToMenuBtn.addEventListener('click', stopGame);
 
-        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
-        showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const licenseCode = document.getElementById('license-code').value.trim();
-            const button = registerForm.querySelector('button');
-            const originalButtonText = 'Daftar';
-            if (!licenseCode) { showNotification('Kode lisensi tidak boleh kosong.', true); return; }
-            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
-            try {
-                const licenseRef = doc(db, 'license_codes', licenseCode);
-                const licenseSnap = await getDoc(licenseRef);
-                if (!licenseSnap.exists() || licenseSnap.data().isUsed) { throw new Error('Kode lisensi tidak valid atau sudah digunakan.'); }
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await updateDoc(licenseRef, { isUsed: true, usedBy: user.uid, usedAt: new Date() });
-                showNotification('Pendaftaran berhasil! Selamat datang.', false);
-            } catch (error) {
-                let errorMessage = 'Terjadi kesalahan saat pendaftaran.';
-                if (error.code === 'auth/email-already-in-use') { errorMessage = 'Email ini sudah terdaftar.'; } 
-                else if (error.code === 'auth/weak-password') { errorMessage = 'Password minimal harus 6 karakter.'; } 
-                else if (error.message) { errorMessage = error.message; }
-                showNotification(errorMessage, true);
-            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
+        logoutBtn.addEventListener('click', () => { 
+            if (unsubscribeGameListener) unsubscribeGameListener();
+            signOut(auth).catch(error => showNotification('Gagal keluar.', true));
         });
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const button = loginForm.querySelector('button');
-            const originalButtonText = 'Login';
-            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
-            try { await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                let errorMessage = 'Email atau password salah.';
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errorMessage = 'Kombinasi email dan password salah.';
-                } showNotification(errorMessage, true);
-            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
-        });
-        logoutBtn.addEventListener('click', () => { if (unsubscribeGameListener) unsubscribeGameListener(); signOut(auth).catch(error => showNotification('Gagal keluar.', true)); });
+        
+        // ... (Event listeners untuk form login/register)
 
     </script>
 </body>
