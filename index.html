@@ -327,7 +327,6 @@
                 if (user) {
                     currentPlayerId = user.uid;
                     if (gameIdFromUrl) {
-                        // This case should not happen for host, but as a fallback
                         window.history.replaceState({}, document.title, window.location.pathname);
                         currentGameId = gameIdFromUrl;
                         startGame(currentGameId);
@@ -368,8 +367,10 @@
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
                 const user = auth.currentUser;
                 if (!docSnap.exists()) {
-                    if(unsubscribeGameListener) unsubscribeGameListener();
-                    unsubscribeGameListener = null;
+                    if(unsubscribeGameListener) {
+                        unsubscribeGameListener();
+                        unsubscribeGameListener = null;
+                    }
                     currentGameId = null;
 
                     showNotification("Permainan telah berakhir.", false);
@@ -530,11 +531,9 @@
         async function stopGame() {
             if (isPlayer1Global && currentGameId) {
                 const gameIdToDelete = currentGameId;
-                // Jangan hentikan listener di sini. Biarkan onSnapshot yang menanganinya.
                 try {
+                    // Cukup hapus dokumennya. Listener onSnapshot akan menangani sisanya.
                     await deleteDoc(doc(db, "games", gameIdToDelete));
-                    // onSnapshot akan mendeteksi docSnap.exists() === false dan
-                    // akan mengarahkan pengguna ke layar yang benar.
                 } catch (error) {
                     console.error("Gagal menghapus game:", error);
                     showNotification("Gagal menghentikan game.", true);
