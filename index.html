@@ -119,12 +119,16 @@
         }
         #magic-indicator {
             position: absolute; top: 1rem; left: 50%; transform: translateX(-50%);
-            font-size: 2rem; opacity: 0; transition: opacity 0.5s, transform 0.5s;
+            font-size: 2rem; opacity: 0;
+            pointer-events: none; /* Pastikan tidak menghalangi klik */
         }
         #magic-indicator.show {
             animation: sparkle 1s ease-in-out;
         }
-        @keyframes sparkle { 0%, 100% { opacity: 0; transform: translateX(-50%) scale(0.5); } 50% { opacity: 1; transform: translateX(-50%) scale(1.2); } }
+        @keyframes sparkle { 
+            0%, 100% { opacity: 0; transform: translateX(-50%) scale(0.5); } 
+            50% { opacity: 1; transform: translateX(-50%) scale(1.2); } 
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -183,7 +187,7 @@
         
         <!-- Layar 4: Arena Permainan -->
         <div id="game-screen" class="screen hidden">
-            <div id="magic-indicator" class="hidden">✨</div>
+            <div id="magic-indicator">✨</div>
             <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
@@ -380,12 +384,24 @@
         }
 
         function activateMagic() {
-            if (!magicSettings || magicSettings.isActive) return;
+            console.log("Mencoba mengaktifkan mode sulap...");
+            if (!magicSettings) {
+                console.log("Gagal: Pengaturan sulap belum diatur.");
+                return;
+            }
+            if (magicSettings.isActive) {
+                 console.log("Gagal: Mode sulap sudah aktif.");
+                return;
+            }
+            
+            console.log("Mode sulap BERHASIL diaktifkan!");
             magicSettings.isActive = true;
             
+            magicIndicator.classList.remove('hidden');
             magicIndicator.classList.add('show');
             setTimeout(() => {
                 magicIndicator.classList.remove('show');
+                magicIndicator.classList.add('hidden');
             }, 1000);
 
             if (magicSettings.mode === 'magician') {
@@ -470,12 +486,11 @@
                 }
 
                 const game = docSnap.data();
-                const isPlayer1Global = game.player1.uid === currentPlayerId;
-                stopGameBtn.classList.toggle('hidden', !isPlayer1Global);
-
                 const me = game.player1;
                 const opponent = game.player2;
                 
+                stopGameBtn.classList.toggle('hidden', !(me && me.uid === currentPlayerId));
+
                 if (!me) return;
 
                 if (!opponent) {
@@ -597,21 +612,22 @@
             }
         });
         
-        // Deteksi double tap yang lebih andal untuk mobile dan desktop
-        let lastTap = 0;
+        let lastTapTime = 0;
         gameScreen.addEventListener('touchend', (e) => {
             if (e.target.closest('button')) return;
             const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
+            const tapLength = currentTime - lastTapTime;
             if (tapLength < 300 && tapLength > 0) {
-                e.preventDefault(); // Mencegah zoom bawaan browser
+                console.log("Double tap terdeteksi via touchend!");
+                e.preventDefault(); 
                 activateMagic();
             }
-            lastTap = currentTime;
+            lastTapTime = currentTime;
         });
 
         gameScreen.addEventListener('dblclick', (e) => {
             if (e.target.closest('button')) return;
+            console.log("Double tap terdeteksi via dblclick!");
             activateMagic();
         });
 
