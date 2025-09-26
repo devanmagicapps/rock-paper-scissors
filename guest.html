@@ -98,9 +98,9 @@
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
             <div class="flex flex-col items-center space-y-4">
-                <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
-                <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
-                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
+                <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
+                <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
+                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
             </div>
             <div class="player-area">
                 <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
@@ -228,8 +228,8 @@
             else if (p1c !== p2c) { winner = 'player2'; }
 
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player2' ? 'KAMU MENANG!' : 'KAMU KALAH!');
-            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player2' ? './images/win.png' : './images/lose.png');
-            resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.png" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.png" alt="${p1c}">`;
+            resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player2' ? './images/win.jpg' : './images/lose.jpg');
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.jpg" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.jpg" alt="${p1c}">`;
             resultPopup.classList.remove('hidden');
         }
 
