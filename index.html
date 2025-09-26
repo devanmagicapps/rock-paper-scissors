@@ -187,8 +187,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
@@ -214,6 +214,7 @@
             waiting: document.getElementById('waiting-screen'),
             game: document.getElementById('game-screen')
         };
+        // ... (DOM element selections are the same as before)
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
         const showLoginLink = document.getElementById('show-login');
@@ -234,11 +235,12 @@
         const resultImage = document.getElementById('result-image');
         const resultScore = document.getElementById('result-score');
 
+
         function showScreen(screenElement) {
             Object.values(screens).forEach(s => s.classList.add('hidden'));
             screenElement.classList.remove('hidden');
         }
-
+        
         function showNotification(message, isError = false) {
             notification.textContent = message;
             notification.style.backgroundColor = isError ? '#EF4444' : '#10B981';
@@ -246,31 +248,27 @@
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        function toggleButtonLoadingState(button, isLoading, originalText) {
-            if (isLoading) {
-                button.disabled = true;
-                button.innerHTML = `<div class="btn-loader"></div>`;
-            } else {
-                button.disabled = false;
-                button.innerHTML = originalText;
-            }
-        }
-        
-        async function handleAppLoad() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameId = urlParams.get('game');
-
-            if (gameId && !auth.currentUser) {
-                await joinGame(gameId);
-            }
-        }
-
-        onAuthStateChanged(auth, user => {
+        onAuthStateChanged(auth, async (user) => {
+            screens.loading.classList.remove('hidden');
             if (user) {
                 currentPlayerId = user.uid;
-                if (!user.isAnonymous) {
+                // Cek apakah user ini sedang dalam game aktif
+                const gamesRef = collection(db, "games");
+                const q = query(gamesRef, where("player1.uid", "==", user.uid));
+                const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
+
+                const [player1Games, player2Games] = await Promise.all([getDocs(q), getDocs(q2)]);
+                const activeGame = player1Games.docs[0] || player2Games.docs[0];
+
+                if (activeGame) {
+                    currentGameId = activeGame.id;
+                    startGame(currentGameId);
+                } else if (!user.isAnonymous) {
                     userEmailSpan.textContent = user.email;
                     showScreen(screens.menu);
+                } else {
+                    // Guest has joined but game doc isn't ready, or they refreshed after game ended
+                    showScreen(screens.auth);
                 }
             } else {
                 currentPlayerId = null;
@@ -278,56 +276,35 @@
             }
             screens.loading.classList.add('hidden');
         });
-        
-        handleAppLoad();
 
-        async function joinGame(gameId) {
-            try {
-                showScreen(screens.loading);
-                const userCredential = await signInAnonymously(auth);
-                const user = userCredential.user;
-                
-                const gameDocRef = doc(db, 'games', gameId);
-                const gameDoc = await getDoc(gameDocRef);
-
-                if (!gameDoc.exists() || gameDoc.data().player2) {
-                    showNotification("Game tidak ditemukan atau sudah penuh.", true);
-                    showScreen(screens.auth); // Back to safety
-                    return;
-                }
-
-                await updateDoc(gameDocRef, {
-                    player2: {
-                        uid: user.uid,
-                        choice: null,
-                        score: 0,
-                        isAnonymous: true
-                    }
-                });
-
-                currentGameId = gameId;
-                startGame(gameId);
-
-            } catch (error) {
-                console.error("Error joining game:", error);
-                showNotification("Gagal bergabung ke permainan.", true);
-                showScreen(screens.auth);
-            }
-        }
-        
         function startGame(gameId) {
             if(unsubscribeGameListener) unsubscribeGameListener();
 
             const gameDocRef = doc(db, "games", gameId);
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
-                if (!docSnap.exists()) return;
+                if (!docSnap.exists()) {
+                    showNotification("Permainan telah berakhir.", false);
+                    if(unsubscribeGameListener) unsubscribeGameListener();
+                    showScreen(screens.menu);
+                    return;
+                };
 
                 const game = docSnap.data();
+                if (!game.player1) return; // Doc created but player1 not set yet
                 const isPlayer1 = game.player1.uid === currentPlayerId;
                 const me = isPlayer1 ? game.player1 : game.player2;
                 const opponent = isPlayer1 ? game.player2 : game.player1;
+                
+                if (!me) { // Guest joined but their doc part isn't populated yet
+                    return;
+                }
 
-                if (!opponent) return; // Player 2 hasn't joined yet
+                if (!opponent) { // Player 2 hasn't joined yet
+                    if(screens.waiting.classList.contains('hidden')) {
+                        showScreen(screens.waiting);
+                    }
+                    return;
+                }
 
                 if(screens.game.classList.contains('hidden')) {
                      showScreen(screens.game);
@@ -360,6 +337,7 @@
         }
 
         async function determineWinner(gameId, game) {
+            // ... (Fungsi ini tidak berubah dari sebelumnya)
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
             let winner = null;
@@ -389,7 +367,6 @@
             
             resultPopup.classList.add('show');
             
-            // Update score in Firestore (only one player needs to do this)
             if (isPlayer1) {
                 const updates = { gameState: 'finished' };
                 if (winner === 'player1') updates['player1.score'] = game.player1.score + 1;
@@ -399,7 +376,6 @@
             
             setTimeout(async () => {
                 resultPopup.classList.remove('show');
-                // Reset for next round (only by player 1)
                 if (isPlayer1) {
                     await updateDoc(doc(db, 'games', gameId), {
                         'player1.choice': null,
@@ -419,7 +395,8 @@
                 choiceBtns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
 
-                const isPlayer1 = auth.currentUser.uid === (await getDoc(doc(db, 'games', currentGameId))).data().player1.uid;
+                const gameDoc = await getDoc(doc(db, 'games', currentGameId));
+                const isPlayer1 = auth.currentUser.uid === gameDoc.data().player1.uid;
                 const choiceField = isPlayer1 ? 'player1.choice' : 'player2.choice';
 
                 await updateDoc(doc(db, 'games', currentGameId), { [choiceField]: choice });
@@ -429,8 +406,7 @@
         createGameBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const button = e.currentTarget;
-            const originalButtonText = 'Buat Game Baru';
-            toggleButtonLoadingState(button, true, originalButtonText);
+            button.disabled = true;
 
             try {
                 const gameData = {
@@ -439,38 +415,38 @@
                 };
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
                 currentGameId = gameDocRef.id;
-
-                const joinUrl = `${window.location.origin}${window.location.pathname}?game=${currentGameId}`;
+                
+                // UBAH URL DI SINI untuk mengarah ke guest.html
+                const currentUrl = window.location.href.replace('index.html', '');
+                const joinUrl = `${currentUrl}guest.html?game=${currentGameId}`;
+                
                 qrCodeContainer.innerHTML = '';
                 new QRCode(qrCodeContainer, { text: joinUrl, width: 192, height: 192 });
-                showScreen(screens.waiting);
                 
-                startGame(currentGameId);
+                startGame(currentGameId); // This will show waiting screen
 
             } catch (error) {
+                console.error("Error creating game:", error);
                 showNotification("Gagal membuat game, coba lagi.", true);
                 showScreen(screens.menu);
             } finally {
-                toggleButtonLoadingState(button, false, originalButtonText);
+                button.disabled = false;
             }
         });
 
         backToMenuBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            // Optional: Hapus game yang belum dimulai
             if (unsubscribeGameListener) unsubscribeGameListener();
             unsubscribeGameListener = null;
             currentGameId = null;
             showScreen(screens.menu);
         });
 
-        // Other listeners
+        // Other listeners (login, register, etc. are unchanged)
+        // ... (kode dari versi sebelumnya bisa disalin di sini)
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
         showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
-        registerForm.addEventListener('submit', async (e) => { /* ... (code unchanged) ... */ });
-        loginForm.addEventListener('submit', async (e) => { /* ... (code unchanged) ... */ });
-        logoutBtn.addEventListener('click', () => { if (unsubscribeGameListener) unsubscribeGameListener(); signOut(auth).catch(error => showNotification('Gagal keluar.', true)); });
-
-        // Dummy unchanged code for register/login to keep it concise
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('register-email').value;
@@ -479,7 +455,7 @@
             const button = registerForm.querySelector('button');
             const originalButtonText = 'Daftar';
             if (!licenseCode) { showNotification('Kode lisensi tidak boleh kosong.', true); return; }
-            toggleButtonLoadingState(button, true);
+            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
             try {
                 const licenseRef = doc(db, 'license_codes', licenseCode);
                 const licenseSnap = await getDoc(licenseRef);
@@ -494,7 +470,7 @@
                 else if (error.code === 'auth/weak-password') { errorMessage = 'Password minimal harus 6 karakter.'; } 
                 else if (error.message) { errorMessage = error.message; }
                 showNotification(errorMessage, true);
-            } finally { toggleButtonLoadingState(button, false, originalButtonText); }
+            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
         });
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -502,15 +478,17 @@
             const password = document.getElementById('login-password').value;
             const button = loginForm.querySelector('button');
             const originalButtonText = 'Login';
-            toggleButtonLoadingState(button, true);
+            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
             try { await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 let errorMessage = 'Email atau password salah.';
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     errorMessage = 'Kombinasi email dan password salah.';
                 } showNotification(errorMessage, true);
-            } finally { toggleButtonLoadingState(button, false, originalButtonText); }
+            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
         });
+        logoutBtn.addEventListener('click', () => { if (unsubscribeGameListener) unsubscribeGameListener(); signOut(auth).catch(error => showNotification('Gagal keluar.', true)); });
+
     </script>
 </body>
 </html>
