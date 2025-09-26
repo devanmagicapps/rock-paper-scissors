@@ -88,7 +88,11 @@
 </head>
 <body>
     <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Menghubungkan ke permainan...</p></div>
-    <div id="game-over-screen" class="screen hidden bg-gray-50 text-center"><h1 class="text-3xl text-gray-700">Permainan Selesai</h1><p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p></div>
+    <div id="game-over-screen" class="screen hidden bg-gray-50 text-center">
+        <h1 class="text-3xl text-gray-700">Permainan Selesai</h1>
+        <p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p>
+        <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
+    </div>
     
     <div id="game-screen" class="screen hidden">
         <div class="w-full max-w-sm h-full flex flex-col justify-between relative">
@@ -216,7 +220,8 @@
                     resultPopup.classList.add('hidden');
                 }
                 
-                if (game.magicSettings?.isActive && game.currentRound >= game.magicSettings.totalRounds - 1 && game.gameState === 'finished') {
+                const currentRound = game.currentRound || 0;
+                if (game.magicSettings?.isActive && currentRound >= game.magicSettings.totalRounds - 1 && game.gameState === 'finished') {
                     showSummaryPopup(game);
                 }
 
