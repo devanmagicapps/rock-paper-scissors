@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Gunting Batu Kertas Online</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,10 @@
         body {
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            /* Mencegah highlight teks */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
@@ -466,6 +470,9 @@
                 }
 
                 const game = docSnap.data();
+                const isPlayer1Global = game.player1.uid === currentPlayerId;
+                stopGameBtn.classList.toggle('hidden', !isPlayer1Global);
+
                 const me = game.player1;
                 const opponent = game.player2;
                 
@@ -590,15 +597,18 @@
             }
         });
         
-        let lastTap = 0;
+        let tapTimeout;
         gameScreen.addEventListener('click', (e) => {
             if (e.target.closest('button')) return;
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 500 && tapLength > 0) {
+            if (!tapTimeout) {
+                tapTimeout = setTimeout(() => {
+                    tapTimeout = null;
+                }, 300);
+            } else {
+                clearTimeout(tapTimeout);
+                tapTimeout = null;
                 activateMagic();
             }
-            lastTap = currentTime;
         });
 
         choiceBtns.forEach(btn => {
