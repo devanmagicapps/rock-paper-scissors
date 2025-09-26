@@ -84,8 +84,8 @@
                     }
                 });
 
-                // 4. Arahkan ke halaman game utama
-                window.location.href = './index.html';
+                // 4. Arahkan ke halaman game utama DENGAN menyertakan ID game
+                window.location.href = `./index.html?game=${gameId}`;
 
             } catch (error) {
                 console.error("Gagal bergabung sebagai guest:", error);
