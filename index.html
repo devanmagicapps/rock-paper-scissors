@@ -667,6 +667,22 @@
             signOut(auth).catch(error => showNotification('Gagal keluar.', true));
         });
         
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            loginPrompt.classList.add('hidden');
+            registerPrompt.classList.remove('hidden');
+        });
+
+        showRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            registerPrompt.classList.add('hidden');
+            loginPrompt.classList.remove('hidden');
+        });
+
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('register-email').value;
