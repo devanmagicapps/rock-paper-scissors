@@ -16,19 +16,20 @@
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none; -ms-user-select: none; user-select: none;
+            background-color: #f1f5f9; /* bg-slate-100 */
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
         }
         .screen, .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 1.5rem;
-            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            justify-content: center; align-items: center; padding: 2.5rem 2rem;
+            transition: opacity 0.4s ease-in-out;
             backface-visibility: hidden;
         }
         .screen.hidden, .modal-overlay.hidden {
-            opacity: 0; transform: scale(0.95); pointer-events: none;
+            opacity: 0; pointer-events: none;
         }
         .loader {
             border: 4px solid #f3f3f3; border-top: 4px solid #FF7E5F;
@@ -85,12 +86,12 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
-        <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Menghubungkan ke permainan...</p></div>
-        <div id="game-over-screen" class="screen hidden bg-gray-50 text-center"><h1 class="text-3xl text-gray-700">Permainan Selesai</h1><p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p></div>
-        
-        <div id="game-screen" class="screen hidden">
+<body>
+    <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Menghubungkan ke permainan...</p></div>
+    <div id="game-over-screen" class="screen hidden bg-gray-50 text-center"><h1 class="text-3xl text-gray-700">Permainan Selesai</h1><p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p></div>
+    
+    <div id="game-screen" class="screen hidden">
+        <div class="w-full max-w-sm h-full flex flex-col justify-between relative">
             <div id="round-counter"></div>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
@@ -98,24 +99,24 @@
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
             <div class="flex flex-col items-center space-y-4">
-                <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
-                <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
-                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+                <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
+                <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
+                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
             </div>
             <div class="player-area">
                 <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
                 <p class="text-gray-500 text-lg">Kamu</p>
             </div>
         </div>
-        
-        <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
-        <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="close-summary-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Tutup</button></div></div>
     </div>
+    
+    <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+    <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="close-summary-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Tutup</button></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg", authDomain: "rock-paper-scissors-prediction.firebaseapp.com", projectId: "rock-paper-scissors-prediction", storageBucket: "rock-paper-scissors-prediction.appspot.com", messagingSenderId: "342279845813", appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc" };
         const app = initializeApp(firebaseConfig);
@@ -124,8 +125,6 @@
 
         let unsubscribeGameListener = null;
         let currentGameId = null;
-        let magicSettings = null;
-        let currentRound = 0;
 
         const screens = { loading: document.getElementById('loading-screen'), game: document.getElementById('game-screen'), gameOver: document.getElementById('game-over-screen') };
         const myScoreEl = document.getElementById('my-score');
@@ -156,11 +155,16 @@
 
         async function joinGame(gameId, uid) {
             try {
-                await updateDoc(doc(db, "games", gameId), { player2: { uid, choice: null, results: { wins: 0, losses: 0, draws: 0 } } });
+                const gameRef = doc(db, "games", gameId);
+                const gameSnap = await getDoc(gameRef);
+                if (!gameSnap.exists() || gameSnap.data().player2) {
+                    throw new Error("Game tidak tersedia atau sudah penuh.");
+                }
+                await updateDoc(gameRef, { player2: { uid, choice: null, results: { wins: 0, losses: 0, draws: 0 } } });
                 startGame(gameId);
             } catch (error) {
                 console.error("Gagal bergabung ke game:", error);
-                document.getElementById('loading-text').textContent = "Gagal bergabung. Mungkin game sudah tidak ada.";
+                document.getElementById('loading-text').textContent = error.message;
             }
         }
         
@@ -192,7 +196,7 @@
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
 
-                if(game.magicSettings && game.magicSettings.isActive) {
+                if(game.magicSettings?.isActive) {
                     roundCounterEl.textContent = `Ronde: ${game.currentRound + 1} / ${game.magicSettings.totalRounds}`;
                 } else {
                     roundCounterEl.textContent = '';
@@ -228,12 +232,13 @@
             else if (p1c !== p2c) { winner = 'player2'; }
 
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player2' ? 'KAMU MENANG!' : 'KAMU KALAH!');
-            resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player2' ? './images/win.jpg' : './images/lose.jpg');
-            resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.jpg" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.jpg" alt="${p1c}">`;
+            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player2' ? './images/win.png' : './images/lose.png');
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.png" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.png" alt="${p1c}">`;
             resultPopup.classList.remove('hidden');
         }
 
         function showSummaryPopup(game) {
+            resultPopup.classList.add('hidden');
             const me = game.player2;
             const opponent = game.player1;
             const myResults = me.results || { wins: 0, losses: 0, draws: 0 };
@@ -264,6 +269,7 @@
         });
         closeSummaryBtn.addEventListener('click', () => {
             summaryModal.classList.add('hidden');
+            // Guest tidak bisa memulai game baru, hanya menutup
         });
 
     </script>
