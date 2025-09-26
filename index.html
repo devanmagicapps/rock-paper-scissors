@@ -176,9 +176,9 @@
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
             <div class="flex flex-col items-center space-y-4">
-                <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
-                <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
-                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
+                <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
+                <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
+                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
             </div>
             <div class="player-area">
                 <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
@@ -249,7 +249,7 @@
         function showScreen(screenElement) { Object.values(screens).forEach(s => s.classList.add('hidden')); if(screenElement) screenElement.classList.remove('hidden'); }
         function showNotification(message, isError = false) { notification.textContent = message; notification.style.backgroundColor = isError ? '#EF4444' : '#10B981'; notification.classList.add('show'); setTimeout(() => notification.classList.remove('show'), 3000); }
 
-        async function preloadAssets() { const images = ['./images/rock.png', './images/paper.png', './images/scissors.png', './images/win.png', './images/lose.png', './images/draw.png']; await Promise.all(images.map(src => new Promise((resolve, reject) => { const img = new Image(); img.src = src; img.onload = resolve; img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`)); }))); }
+        async function preloadAssets() { const images = ['./images/rock.jpg', './images/paper.jpg', './images/scissors.jpg', './images/win.jpg', './images/lose.jpg', './images/draw.jpg']; await Promise.all(images.map(src => new Promise((resolve, reject) => { const img = new Image(); img.src = src; img.onload = resolve; img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`)); }))); }
         
         async function loadMagicSettings(uid) {
             const settingsRef = doc(db, 'user_settings', uid);
@@ -374,7 +374,7 @@
                 }
                 
                 if (magicSettings?.isActive && magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
-                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
+                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.jpg" alt="${opponent.choice}">`;
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 } else if (opponent.choice) {
                     opponentChoiceDisplay.textContent = '✓';
@@ -415,8 +415,8 @@
             else if (p1c !== p2c) { winner = 'player2'; }
 
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player1' ? 'KAMU MENANG!' : 'KAMU KALAH!');
-            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player1' ? './images/win.png' : './images/lose.png');
-            resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.png" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.png" alt="${p2c}">`;
+            resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player1' ? './images/win.jpg' : './images/lose.jpg');
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.jpg" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.jpg" alt="${p2c}">`;
             resultPopup.classList.remove('hidden');
         }
         
