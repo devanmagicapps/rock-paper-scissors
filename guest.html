@@ -88,7 +88,10 @@
 </head>
 <body>
     <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Menghubungkan ke permainan...</p></div>
-    <div id="game-over-screen" class="screen hidden bg-gray-50 text-center"><h1 class="text-3xl text-gray-700">Permainan Selesai</h1><p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p></div>
+    <div id="game-over-screen" class="screen hidden bg-gray-50 text-center">
+        <h1 class="text-3xl text-gray-700">Permainan Selesai</h1>
+        <p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p>
+    </div>
     
     <div id="game-screen" class="screen hidden">
         <div class="w-full max-w-sm h-full flex flex-col justify-between relative">
@@ -269,7 +272,6 @@
         });
         closeSummaryBtn.addEventListener('click', () => {
             summaryModal.classList.add('hidden');
-            // Guest tidak bisa memulai game baru, hanya menutup
         });
 
     </script>
