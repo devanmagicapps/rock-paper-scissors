@@ -327,27 +327,25 @@
                 if (user) {
                     currentPlayerId = user.uid;
                     if (gameIdFromUrl) {
+                        // This case should not happen for host, but as a fallback
                         window.history.replaceState({}, document.title, window.location.pathname);
                         currentGameId = gameIdFromUrl;
                         startGame(currentGameId);
                         return;
                     }
-                    // Cek jika ada game yang sedang berjalan untuk user ini
+                    // Clean up any stale games this user might have hosted
                     const gamesRef = collection(db, "games");
                     const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
-                    const [p1Games] = await Promise.all([getDocs(q1)]);
-                    const activeGame = p1Games.docs[0];
-
-                    if (activeGame) {
-                        // Jika ada game aktif, hapus karena seharusnya tidak ada sisa.
-                        await deleteDoc(doc(db, "games", activeGame.id));
-                    }
+                    const staleGames = await getDocs(q1);
+                    staleGames.forEach(async (gameDoc) => {
+                        console.log("Menghapus sisa game:", gameDoc.id);
+                        await deleteDoc(doc(db, "games", gameDoc.id));
+                    });
                     
                     if (!user.isAnonymous) {
                         userEmailSpan.textContent = user.email;
                         showScreen(screens.menu);
                     } else {
-                        // Guest seharusnya tidak pernah ada di sini tanpa gameId
                          signOut(auth).finally(() => showScreen(screens.auth));
                     }
 
@@ -370,13 +368,13 @@
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
                 const user = auth.currentUser;
                 if (!docSnap.exists()) {
-                    showNotification("Permainan telah dihentikan oleh host.", false);
                     if(unsubscribeGameListener) unsubscribeGameListener();
+                    unsubscribeGameListener = null;
                     currentGameId = null;
+
+                    showNotification("Permainan telah berakhir.", false);
                     if (user && !user.isAnonymous) {
                         showScreen(screens.menu);
-                    } else {
-                         signOut(auth).finally(() => showScreen(screens.auth));
                     }
                     return;
                 }
@@ -384,9 +382,9 @@
                 const game = docSnap.data();
                 if (!game.player1) return;
                 isPlayer1Global = game.player1.uid === currentPlayerId;
-                stopGameBtn.classList.toggle('hidden', !isPlayer1Global); // Tampilkan tombol stop hanya untuk host
+                stopGameBtn.classList.toggle('hidden', !isPlayer1Global);
 
-                const me = game.player1; // Di index.html, "me" selalu player1
+                const me = game.player1;
                 const opponent = game.player2;
                 
                 if (!me) return;
@@ -532,10 +530,15 @@
         async function stopGame() {
             if (isPlayer1Global && currentGameId) {
                 const gameIdToDelete = currentGameId;
-                if(unsubscribeGameListener) unsubscribeGameListener();
-                unsubscribeGameListener = null;
-                currentGameId = null;
-                await deleteDoc(doc(db, "games", gameIdToDelete));
+                // Jangan hentikan listener di sini. Biarkan onSnapshot yang menanganinya.
+                try {
+                    await deleteDoc(doc(db, "games", gameIdToDelete));
+                    // onSnapshot akan mendeteksi docSnap.exists() === false dan
+                    // akan mengarahkan pengguna ke layar yang benar.
+                } catch (error) {
+                    console.error("Gagal menghapus game:", error);
+                    showNotification("Gagal menghentikan game.", true);
+                }
             }
         }
         stopGameBtn.addEventListener('click', stopGame);
