@@ -209,7 +209,6 @@
         let currentGameId = null;
         let magicSettings = null;
         let magicianPlan = [];
-        let currentRound = 0;
 
         const screens = { loading: document.getElementById('loading-screen'), auth: document.getElementById('auth-screen'), menu: document.getElementById('menu-screen'), waiting: document.getElementById('waiting-screen'), game: document.getElementById('game-screen') };
         const loadingText = document.getElementById('loading-text');
@@ -290,8 +289,8 @@
             } catch (error) { console.error("Gagal menyimpan:", error); showNotification("Gagal menyimpan pengaturan.", true); return false; }
         }
 
-        function activateMagic() {
-            if (!magicSettings) return;
+        async function activateMagic() {
+            if (!magicSettings || magicSettings.isActive) return;
             
             magicSettings.isActive = true;
             const originalContent = opponentChoiceDisplay.innerHTML;
@@ -301,6 +300,10 @@
                    opponentChoiceDisplay.innerHTML = originalContent;
                 }
             }, 1200);
+            
+            if(currentGameId) {
+                await updateDoc(doc(db, 'games', currentGameId), { "magicSettings": magicSettings });
+            }
 
             if (magicSettings.mode === 'magician') {
                 magicianPlan = [];
@@ -338,7 +341,6 @@
         });
 
         function startGame(gameId) {
-            currentRound = 0;
             if (magicSettings) magicSettings.isActive = false;
             currentGameId = gameId;
 
@@ -358,6 +360,7 @@
                 const game = docSnap.data();
                 const me = game.player1;
                 const opponent = game.player2;
+                const currentRound = game.currentRound || 0;
                 
                 stopGameBtn.classList.toggle('hidden', !(me && me.uid === auth.currentUser.uid));
 
@@ -367,14 +370,13 @@
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
 
-                if(magicSettings && magicSettings.isActive) {
-                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${magicSettings.totalRounds}`;
-                    await updateDoc(gameDocRef, { "magicSettings": magicSettings, "currentRound": currentRound });
+                if(game.magicSettings?.isActive) {
+                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${game.magicSettings.totalRounds}`;
                 } else {
                     roundCounterEl.textContent = '';
                 }
                 
-                if (magicSettings?.isActive && magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
+                if (game.magicSettings?.isActive && game.magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.jpg" alt="${opponent.choice}">`;
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 } else if (opponent.choice) {
@@ -392,7 +394,7 @@
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    if (magicSettings?.isActive && magicSettings.mode === 'magician' && me.choice === 'chosen') {
+                    if (game.magicSettings?.isActive && game.magicSettings.mode === 'magician' && me.choice === 'chosen') {
                         const desiredOutcome = magicianPlan[currentRound];
                         const magicalChoice = getMagicianChoice(opponent.choice, desiredOutcome);
                         updateChoiceHighlight(magicalChoice);
@@ -454,15 +456,19 @@
         }
 
         async function resetRound(gameData) {
-            if (magicSettings && magicSettings.isActive) {
-                 currentRound++;
-                if (currentRound >= magicSettings.totalRounds) {
+            const currentRound = gameData.currentRound || 0;
+            const updates = { 'player1.choice': null, 'player2.choice': null, 'gameState': 'waiting' };
+            
+            if (gameData.magicSettings?.isActive) {
+                if (currentRound + 1 >= gameData.magicSettings.totalRounds) {
                     showSummaryPopup(gameData);
-                    return;
+                    return; // Stop round reset, show summary instead
                 }
+                updates.currentRound = increment(1);
             }
+
             if (currentGameId) {
-                await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': null, 'player2.choice': null, 'gameState': 'waiting' });
+                await updateDoc(doc(db, 'games', currentGameId), updates);
             }
         }
         
@@ -518,7 +524,7 @@
             try {
                 const gameData = {
                     player1: { uid: auth.currentUser.uid, email: auth.currentUser.email, choice: null, results: { wins: 0, losses: 0, draws: 0 } },
-                    player2: null, gameState: 'waiting', createdAt: serverTimestamp()
+                    player2: null, gameState: 'waiting', createdAt: serverTimestamp(), currentRound: 0
                 };
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
                 const joinUrl = `${window.location.href.split('?')[0].replace(/index\.html$/, '')}guest.html?game=${gameDocRef.id}`;
