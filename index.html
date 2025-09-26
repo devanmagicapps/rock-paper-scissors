@@ -34,6 +34,8 @@
         .auth-input {
             border: 2px solid #E2E8F0; background-color: #F7FAFC;
             transition: all 0.2s ease-in-out;
+            font-size: 1.1rem; /* Perbesar teks input */
+            padding: 0.9rem; /* Perbesar padding input */
         }
         .auth-input:focus {
             outline: none; border-color: #4A90E2;
@@ -95,22 +97,55 @@
         }
         #opponent-choice-display img { width: 50px; height: 50px; }
         
+        /* New Result Popup Styles */
         #result-popup {
             position: absolute; top:0; left:0; width:100%; height:100%;
-            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
-            justify-content: center; align-items: center; flex-direction: column;
+            background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            justify-content: center; align-items: center;
             opacity: 0; transition: opacity 0.3s; pointer-events:none; z-index: 50;
         }
         #result-popup.show { opacity: 1; pointer-events: all; }
-        #result-popup img { animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-        @keyframes popIn { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+        .result-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            transform: scale(0.9);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        #close-popup-btn {
+            position: absolute; top: 10px; right: 10px;
+            width: 36px; height: 36px; background-color: #F1F5F9;
+            border-radius: 50%; color: #64748B;
+            font-size: 1.5rem; line-height: 1;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        #close-popup-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
+
+        #result-choices-display {
+            display: flex; justify-content: center; align-items: center;
+            gap: 1rem; margin-top: 1rem;
+        }
+        #result-choices-display img {
+            width: 50px; height: 50px;
+            background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
     <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
+        <!-- Div untuk preloading aset -->
+        <div id="asset-preloader" class="hidden"></div>
+        
         <!-- Layar Loading Awal -->
-        <div id="loading-screen" class="screen"><div class="loader"></div><p class="mt-4 text-gray-500">Memuat...</p></div>
+        <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Memuat...</p></div>
 
         <!-- Layar 1: Pendaftaran & Login -->
         <div id="auth-screen" class="screen hidden">
@@ -118,14 +153,14 @@
                 <h1 class="text-5xl text-gray-800 mb-2">GBK Online</h1>
                 <p class="text-gray-500 mb-8">Selamat Datang!</p>
                 <form id="register-form" class="space-y-4">
-                    <input type="email" id="register-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
-                    <input type="password" id="register-password" placeholder="Buat Password" class="w-full p-3 rounded-lg auth-input" required minlength="6">
-                    <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full p-3 rounded-lg auth-input" required>
+                    <input type="email" id="register-email" placeholder="Email Anda" class="w-full rounded-lg auth-input" required>
+                    <input type="password" id="register-password" placeholder="Buat Password" class="w-full rounded-lg auth-input" required minlength="6">
+                    <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full rounded-lg auth-input" required>
                     <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Daftar</button>
                 </form>
                 <form id="login-form" class="space-y-4 hidden">
-                    <input type="email" id="login-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
-                    <input type="password" id="login-password" placeholder="Password" class="w-full p-3 rounded-lg auth-input" required>
+                    <input type="email" id="login-email" placeholder="Email Anda" class="w-full rounded-lg auth-input" required>
+                    <input type="password" id="login-password" placeholder="Password" class="w-full rounded-lg auth-input" required>
                     <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Login</button>
                 </form>
                 <p class="mt-6 text-sm text-gray-600">
@@ -175,10 +210,16 @@
             </div>
         </div>
         
-        <!-- Elemen Pop-up Hasil -->
-        <div id="result-popup" class="flex">
-            <img id="result-image" src="" alt="Hasil" class="w-48 h-48">
-            <p id="result-score" class="font-title text-4xl text-white mt-4"></p>
+        <!-- Elemen Pop-up Hasil (Struktur Baru) -->
+        <div id="result-popup" class="hidden">
+            <div class="result-card">
+                <button id="close-popup-btn">&times;</button>
+                <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
+                <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
+                <div id="result-choices-display">
+                    <!-- Contoh: <img src="./images/rock.png"> vs <img src="./images/paper.png"> -->
+                </div>
+            </div>
         </div>
 
         <!-- Notifikasi Kustom -->
@@ -206,6 +247,7 @@
         let unsubscribeGameListener = null;
         let currentGameId = null;
         let currentPlayerId = null;
+        let isPlayer1Global = false;
 
         const screens = {
             loading: document.getElementById('loading-screen'),
@@ -215,6 +257,8 @@
             game: document.getElementById('game-screen')
         };
         
+        // --- (DOM element selections) ---
+        const loadingText = document.getElementById('loading-text');
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
         const showLoginLink = document.getElementById('show-login');
@@ -231,10 +275,29 @@
         const opponentScoreEl = document.getElementById('opponent-score');
         const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
         const choiceBtns = document.querySelectorAll('.choice-btn');
+        // New popup elements
         const resultPopup = document.getElementById('result-popup');
+        const resultText = document.getElementById('result-text');
         const resultImage = document.getElementById('result-image');
-        const resultScore = document.getElementById('result-score');
+        const resultChoicesDisplay = document.getElementById('result-choices-display');
+        const closePopupBtn = document.getElementById('close-popup-btn');
 
+        // --- Asset Preloader ---
+        async function preloadAssets() {
+            const images = [
+                './images/rock.png', './images/paper.png', './images/scissors.png',
+                './images/win.png', './images/lose.png', './images/draw.png'
+            ];
+            const promises = images.map(src => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = src;
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`));
+                });
+            });
+            await Promise.all(promises);
+        }
 
         function showScreen(screenElement) {
             Object.values(screens).forEach(s => s.classList.add('hidden'));
@@ -250,54 +313,54 @@
         
         // --- LOGIKA UTAMA APLIKASI ---
         onAuthStateChanged(auth, async (user) => {
-            screens.loading.classList.remove('hidden');
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameIdFromUrl = urlParams.get('game');
+            try {
+                loadingText.textContent = 'Memuat aset...';
+                await preloadAssets();
+                loadingText.textContent = 'Memuat...';
 
-            if (user) {
-                currentPlayerId = user.uid;
-                
-                // Prioritas 1: Jika ada ID game di URL (berarti guest baru bergabung)
-                if (gameIdFromUrl) {
-                    // Hapus parameter dari URL agar tidak terjadi loop saat refresh
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    currentGameId = gameIdFromUrl;
-                    startGame(currentGameId);
-                    return; // Selesai, langsung masuk game
-                }
+                const urlParams = new URLSearchParams(window.location.search);
+                const gameIdFromUrl = urlParams.get('game');
 
-                // Prioritas 2: Cek apakah pengguna (bukan guest) sudah ada di dalam game aktif
-                const gamesRef = collection(db, "games");
-                const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
-                const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
-                
-                const [p1Games, p2Games] = await Promise.all([getDocs(q1), getDocs(q2)]);
-                const activeGame = p1Games.docs[0] || p2Games.docs[0];
+                if (user) {
+                    currentPlayerId = user.uid;
+                    if (gameIdFromUrl) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        currentGameId = gameIdFromUrl;
+                        startGame(currentGameId);
+                        return;
+                    }
+                    const gamesRef = collection(db, "games");
+                    const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
+                    const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
+                    const [p1Games, p2Games] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                    const activeGame = p1Games.docs[0] || p2Games.docs[0];
 
-                if (activeGame) {
-                    currentGameId = activeGame.id;
-                    startGame(currentGameId);
-                } else if (!user.isAnonymous) {
-                    // Pengguna biasa tanpa game aktif -> Tampilkan menu
-                    userEmailSpan.textContent = user.email;
-                    showScreen(screens.menu);
+                    if (activeGame) {
+                        currentGameId = activeGame.id;
+                        startGame(currentGameId);
+                    } else if (!user.isAnonymous) {
+                        userEmailSpan.textContent = user.email;
+                        showScreen(screens.menu);
+                    } else {
+                        showScreen(screens.auth);
+                    }
+
                 } else {
-                    // Pengguna anonim tanpa game aktif -> Tampilkan layar login
+                    currentPlayerId = null;
                     showScreen(screens.auth);
                 }
-
-            } else {
-                // Tidak ada pengguna yang login
-                currentPlayerId = null;
-                showScreen(screens.auth);
+                screens.loading.classList.add('hidden');
+            } catch(error) {
+                console.error("Gagal saat inisialisasi aplikasi:", error);
+                loadingText.textContent = 'Gagal memuat aset.';
+                showNotification(error.message || 'Gagal memuat aset. Pastikan folder /images ada.', true);
             }
-            screens.loading.classList.add('hidden');
         });
 
         function startGame(gameId) {
             if(unsubscribeGameListener) unsubscribeGameListener();
-
             const gameDocRef = doc(db, "games", gameId);
+
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
                 if (!docSnap.exists()) {
                     showNotification("Permainan telah berakhir.", false);
@@ -305,28 +368,22 @@
                     currentGameId = null;
                     showScreen(screens.menu);
                     return;
-                };
+                }
 
                 const game = docSnap.data();
                 if (!game.player1) return;
-                const isPlayer1 = game.player1.uid === currentPlayerId;
-                const me = isPlayer1 ? game.player1 : game.player2;
-                const opponent = isPlayer1 ? game.player2 : game.player1;
+                isPlayer1Global = game.player1.uid === currentPlayerId;
+                const me = isPlayer1Global ? game.player1 : game.player2;
+                const opponent = isPlayer1Global ? game.player2 : game.player1;
                 
-                if (!me) {
-                    return;
-                }
+                if (!me) return;
 
                 if (!opponent) {
-                    if(screens.waiting.classList.contains('hidden')) {
-                        showScreen(screens.waiting);
-                    }
+                    if(screens.waiting.classList.contains('hidden')) showScreen(screens.waiting);
                     return;
                 }
 
-                if(screens.game.classList.contains('hidden')) {
-                     showScreen(screens.game);
-                }
+                if(screens.game.classList.contains('hidden')) showScreen(screens.game);
 
                 myScoreEl.textContent = me.score;
                 opponentScoreEl.textContent = opponent.score;
@@ -336,97 +393,105 @@
                 } else if(opponent.choice) {
                     opponentChoiceDisplay.textContent = '✓';
                     opponentChoiceDisplay.classList.add("bg-green-200", "text-green-600");
-                }
-                 else {
+                } else {
                     opponentChoiceDisplay.innerHTML = `?`;
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 }
 
+                // Logic baru untuk menampilkan hasil
+                if (game.gameState === 'finished') {
+                    showResultPopup(game);
+                } else {
+                    resultPopup.classList.remove('show');
+                }
+
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    determineWinner(gameId, game);
+                    // Hanya Player 1 yang menentukan pemenang
+                    if(isPlayer1Global) determineWinner(gameId, game);
                 }
                 
-                choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice));
+                choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice || game.gameState === 'finished'));
             });
+        }
+        
+        function showResultPopup(game) {
+            const p1c = game.player1.choice;
+            const p2c = game.player2.choice;
+            let winner = 'draw';
+            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
+                winner = 'player1';
+            } else if (p1c !== p2c) {
+                winner = 'player2';
+            }
+
+            let resultImgSrc = '';
+            let resultStatusText = '';
+            if (winner === 'draw') {
+                resultImgSrc = './images/draw.png';
+                resultStatusText = 'SERI!';
+            } else if ((winner === 'player1' && isPlayer1Global) || (winner === 'player2' && !isPlayer1Global)) {
+                resultImgSrc = './images/win.png';
+                resultStatusText = 'KAMU MENANG!';
+            } else {
+                resultImgSrc = './images/lose.png';
+                resultStatusText = 'KAMU KALAH!';
+            }
+
+            resultText.textContent = resultStatusText;
+            resultImage.src = resultImgSrc;
+
+            const myChoiceImg = isPlayer1Global ? p1c : p2c;
+            const opponentChoiceImg = isPlayer1Global ? p2c : p1c;
+            resultChoicesDisplay.innerHTML = `
+                <img src="./images/${myChoiceImg}.png" alt="${myChoiceImg}">
+                <span class="font-title text-2xl text-gray-400">vs</span>
+                <img src="./images/${opponentChoiceImg}.png" alt="${opponentChoiceImg}">
+            `;
+            
+            resultPopup.classList.add('show');
         }
 
         async function determineWinner(gameId, game) {
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
-            const isPlayer1 = game.player1.uid === currentPlayerId;
-            let winner = null;
+            let winner = 'draw';
 
-            // 1. Determine the winner ('player1', 'player2', or 'draw')
-            if (p1c === p2c) {
-                winner = 'draw';
-            } else if (
-                (p1c === 'rock' && p2c === 'scissors') ||
-                (p1c === 'paper' && p2c === 'rock') ||
-                (p1c === 'scissors' && p2c === 'paper')
-            ) {
+            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
                 winner = 'player1';
-            } else {
+            } else if (p1c !== p2c) {
                 winner = 'player2';
             }
 
-            // 2. Player 1 is responsible for updating the database to prevent race conditions
-            if (isPlayer1) {
-                const updates = { gameState: 'finished' };
-                if (winner === 'player1') {
-                    updates['player1.score'] = game.player1.score + 1;
-                } else if (winner === 'player2') {
-                    updates['player2.score'] = game.player2.score + 1;
-                }
-                // If it's a draw, no score is updated, only the game state
-                await updateDoc(doc(db, 'games', gameId), updates);
+            const updates = { gameState: 'finished' };
+            if (winner === 'player1') {
+                updates['player1.score'] = game.player1.score + 1;
+            } else if (winner === 'player2') {
+                updates['player2.score'] = game.player2.score + 1;
             }
-
-            // 3. Calculate final scores for display
-            let finalP1Score = game.player1.score;
-            let finalP2Score = game.player2.score;
-            if (winner === 'player1') finalP1Score++;
-            if (winner === 'player2') finalP2Score++;
-
-            // 4. Determine result image and update the popup
-            let resultImgSrc = '';
-            if (winner === 'draw') {
-                resultImgSrc = './images/draw.png';
-            } else if ((winner === 'player1' && isPlayer1) || (winner === 'player2' && !isPlayer1)) {
-                resultImgSrc = './images/win.png';
-            } else {
-                resultImgSrc = './images/lose.png';
-            }
-            
-            resultImage.src = resultImgSrc;
-            resultScore.textContent = `${finalP1Score} - ${finalP2Score}`;
-            resultPopup.classList.add('show');
-            
-            // 5. After 2 seconds, Player 1 resets the round
-            setTimeout(async () => {
-                resultPopup.classList.remove('show');
-                if (isPlayer1) {
-                    await updateDoc(doc(db, 'games', gameId), {
-                        'player1.choice': null,
-                        'player2.choice': null,
-                        'gameState': 'waiting'
-                    });
-                }
-                choiceBtns.forEach(btn => btn.classList.remove('selected'));
-            }, 2000);
+            await updateDoc(doc(db, 'games', gameId), updates);
         }
+
+        async function resetRound() {
+            if (isPlayer1Global && currentGameId) {
+                await updateDoc(doc(db, 'games', currentGameId), {
+                    'player1.choice': null,
+                    'player2.choice': null,
+                    'gameState': 'waiting'
+                });
+            }
+        }
+        closePopupBtn.addEventListener('click', () => {
+            resultPopup.classList.remove('show');
+            resetRound(); // Hanya Player 1 yang akan berhasil menjalankan ini
+        });
 
         choiceBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (!currentGameId || btn.classList.contains('disabled')) return;
-                
                 const choice = btn.dataset.choice;
                 choiceBtns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-
-                const gameDoc = await getDoc(doc(db, 'games', currentGameId));
-                const isPlayer1 = auth.currentUser.uid === gameDoc.data().player1.uid;
-                const choiceField = isPlayer1 ? 'player1.choice' : 'player2.choice';
-
+                const choiceField = isPlayer1Global ? 'player1.choice' : 'player2.choice';
                 await updateDoc(doc(db, 'games', currentGameId), { [choiceField]: choice });
             });
         });
@@ -435,23 +500,18 @@
             e.preventDefault();
             const button = e.currentTarget;
             button.disabled = true;
-
             try {
                 const gameData = {
                     player1: { uid: auth.currentUser.uid, email: auth.currentUser.email, choice: null, score: 0 },
-                    player2: null, gameState: 'waiting', round: 1, createdAt: serverTimestamp()
+                    player2: null, gameState: 'waiting', createdAt: serverTimestamp()
                 };
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
                 currentGameId = gameDocRef.id;
-                
                 const currentUrl = window.location.href.split('?')[0].replace(/index\.html$/, '');
                 const joinUrl = `${currentUrl}guest.html?game=${currentGameId}`;
-                
                 qrCodeContainer.innerHTML = '';
                 new QRCode(qrCodeContainer, { text: joinUrl, width: 192, height: 192 });
-                
                 startGame(currentGameId);
-
             } catch (error) {
                 console.error("Error creating game:", error);
                 showNotification("Gagal membuat game, coba lagi.", true);
