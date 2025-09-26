@@ -191,6 +191,7 @@
         <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="close-btn">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
 
         <div id="notification"></div>
+        <p class="absolute bottom-2 w-full text-center text-xs text-gray-400 pointer-events-none">Concepted by Heri Sanjaya</p>
     </div>
 
     <script type="module">
@@ -289,7 +290,7 @@
         }
 
         function activateMagic() {
-            if (!magicSettings || magicSettings.isActive) return;
+            if (!magicSettings) return; // Jangan aktifkan jika belum ada settings
             
             magicSettings.isActive = true;
             const originalContent = opponentChoiceDisplay.innerHTML;
@@ -343,11 +344,11 @@
             if(unsubscribeGameListener) unsubscribeGameListener();
             const gameDocRef = doc(db, "games", gameId);
 
-            unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
+            unsubscribeGameListener = onSnapshot(gameDocRef, async (docSnap) => {
                 if (!docSnap.exists()) {
                     if(unsubscribeGameListener) { unsubscribeGameListener(); unsubscribeGameListener = null; }
                     currentGameId = null;
-                    if (screens.game.classList.contains('hidden')) return;
+                    if (screens.game.classList.contains('hidden') && screens.waiting.classList.contains('hidden')) return;
                     showNotification("Permainan telah berakhir.", false);
                     if (auth.currentUser && !auth.currentUser.isAnonymous) showScreen(screens.menu);
                     return;
@@ -362,16 +363,17 @@
                 if (!me || !opponent) { showScreen(screens.waiting); return; }
                 if(screens.game.classList.contains('hidden')) showScreen(screens.game);
                 
-                myScoreEl.textContent = opponent.results?.wins ?? 0;
-                opponentScoreEl.textContent = me.results?.wins ?? 0;
+                myScoreEl.textContent = me.results?.wins ?? 0;
+                opponentScoreEl.textContent = opponent.results?.wins ?? 0;
 
                 if(magicSettings && magicSettings.isActive) {
                     roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${magicSettings.totalRounds}`;
+                    await updateDoc(gameDocRef, { "magicSettings": magicSettings, "currentRound": currentRound });
                 } else {
                     roundCounterEl.textContent = '';
                 }
                 
-                if (magicSettings && magicSettings.isActive && magicSettings.mode === 'peek' && opponent.choice) {
+                if (magicSettings?.isActive && magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 } else if (opponent.choice) {
@@ -395,7 +397,7 @@
                         updateChoiceHighlight(magicalChoice);
                         setTimeout(() => {
                            updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
-                        }, 500); // Jeda sesaat untuk feedback visual
+                        }, 500);
                     } else if (me.choice !== 'chosen') {
                         determineWinner(gameId, game);
                     }
