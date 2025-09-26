@@ -41,7 +41,7 @@
         .player-area { width: 100%; text-align: center; }
         .choice-btn {
             background-color: white; border-radius: 50%; padding: 1rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
         }
         .choice-btn:hover { transform: scale(1.1); }
@@ -107,7 +107,8 @@
                 <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
-            <div class="flex flex-col items-center">
+            <!-- Perbaikan: Menambahkan class space-y-4 untuk memberi jarak antar tombol -->
+            <div class="flex flex-col items-center space-y-4">
                 <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
                 <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
                 <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
