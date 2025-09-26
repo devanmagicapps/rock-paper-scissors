@@ -335,18 +335,20 @@
                     // Cek jika ada game yang sedang berjalan untuk user ini
                     const gamesRef = collection(db, "games");
                     const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
-                    const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
-                    const [p1Games, p2Games] = await Promise.all([getDocs(q1), getDocs(q2)]);
-                    const activeGame = p1Games.docs[0] || p2Games.docs[0];
+                    const [p1Games] = await Promise.all([getDocs(q1)]);
+                    const activeGame = p1Games.docs[0];
 
                     if (activeGame) {
-                        currentGameId = activeGame.id;
-                        startGame(currentGameId);
-                    } else if (!user.isAnonymous) {
+                        // Jika ada game aktif, hapus karena seharusnya tidak ada sisa.
+                        await deleteDoc(doc(db, "games", activeGame.id));
+                    }
+                    
+                    if (!user.isAnonymous) {
                         userEmailSpan.textContent = user.email;
                         showScreen(screens.menu);
                     } else {
-                        showScreen(screens.auth);
+                        // Guest seharusnya tidak pernah ada di sini tanpa gameId
+                         signOut(auth).finally(() => showScreen(screens.auth));
                     }
 
                 } else {
@@ -371,11 +373,10 @@
                     showNotification("Permainan telah dihentikan oleh host.", false);
                     if(unsubscribeGameListener) unsubscribeGameListener();
                     currentGameId = null;
-                    // Jika guest, kembali ke auth. Jika host, kembali ke menu.
                     if (user && !user.isAnonymous) {
                         showScreen(screens.menu);
                     } else {
-                        showScreen(screens.auth);
+                         signOut(auth).finally(() => showScreen(screens.auth));
                     }
                     return;
                 }
@@ -385,8 +386,8 @@
                 isPlayer1Global = game.player1.uid === currentPlayerId;
                 stopGameBtn.classList.toggle('hidden', !isPlayer1Global); // Tampilkan tombol stop hanya untuk host
 
-                const me = isPlayer1Global ? game.player1 : game.player2;
-                const opponent = isPlayer1Global ? game.player2 : game.player1;
+                const me = game.player1; // Di index.html, "me" selalu player1
+                const opponent = game.player2;
                 
                 if (!me) return;
 
@@ -417,7 +418,7 @@
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    if(isPlayer1Global) determineWinner(gameId, game);
+                    determineWinner(gameId, game);
                 }
                 
                 choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice || game.gameState === 'finished'));
@@ -439,7 +440,7 @@
             if (winner === 'draw') {
                 resultImgSrc = './images/draw.png';
                 resultStatusText = 'SERI!';
-            } else if ((winner === 'player1' && isPlayer1Global) || (winner === 'player2' && !isPlayer1Global)) {
+            } else if (winner === 'player1') {
                 resultImgSrc = './images/win.png';
                 resultStatusText = 'KAMU MENANG!';
             } else {
@@ -450,12 +451,10 @@
             resultText.textContent = resultStatusText;
             resultImage.src = resultImgSrc;
 
-            const myChoiceImg = isPlayer1Global ? p1c : p2c;
-            const opponentChoiceImg = isPlayer1Global ? p2c : p1c;
             resultChoicesDisplay.innerHTML = `
-                <img src="./images/${myChoiceImg}.png" alt="${myChoiceImg}">
+                <img src="./images/${p1c}.png" alt="${p1c}">
                 <span class="font-title text-2xl text-gray-400">vs</span>
-                <img src="./images/${opponentChoiceImg}.png" alt="${opponentChoiceImg}">
+                <img src="./images/${p2c}.png" alt="${p2c}">
             `;
             
             resultPopup.classList.add('show');
@@ -476,7 +475,7 @@
             if (winner === 'player1') {
                 updates['player1.score'] = game.player1.score + 1;
             } else if (winner === 'player2') {
-                updates['player2.score'] = game.player2.score + 1; // BUG FIX: Was '2.score'
+                updates['player2.score'] = game.player2.score + 1;
             }
             await updateDoc(doc(db, 'games', gameId), updates);
         }
@@ -501,8 +500,7 @@
                 const choice = btn.dataset.choice;
                 choiceBtns.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-                const choiceField = isPlayer1Global ? 'player1.choice' : 'player2.choice';
-                await updateDoc(doc(db, 'games', currentGameId), { [choiceField]: choice });
+                await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': choice });
             });
         });
 
@@ -533,24 +531,15 @@
 
         async function stopGame() {
             if (isPlayer1Global && currentGameId) {
-                const gameId = currentGameId;
+                const gameIdToDelete = currentGameId;
                 if(unsubscribeGameListener) unsubscribeGameListener();
                 unsubscribeGameListener = null;
                 currentGameId = null;
-                await deleteDoc(doc(db, "games", gameId));
-                showScreen(screens.menu);
+                await deleteDoc(doc(db, "games", gameIdToDelete));
             }
         }
         stopGameBtn.addEventListener('click', stopGame);
         backToMenuBtn.addEventListener('click', stopGame);
-
-        // Handle host disconnect
-        window.addEventListener('beforeunload', (e) => {
-            if (isPlayer1Global && currentGameId) {
-                // This is not guaranteed to run, but it's the best we can do client-side
-                stopGame();
-            }
-        });
 
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
         showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
