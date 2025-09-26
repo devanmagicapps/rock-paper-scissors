@@ -291,7 +291,7 @@
         }
 
         function activateMagic() {
-            if (!magicSettings || magicSettings.isActive) return;
+            if (!magicSettings) return;
             
             magicSettings.isActive = true;
             const originalContent = opponentChoiceDisplay.innerHTML;
