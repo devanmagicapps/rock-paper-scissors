@@ -209,6 +209,7 @@
         let currentGameId = null;
         let magicSettings = null;
         let magicianPlan = [];
+        let currentRound = 0;
 
         const screens = { loading: document.getElementById('loading-screen'), auth: document.getElementById('auth-screen'), menu: document.getElementById('menu-screen'), waiting: document.getElementById('waiting-screen'), game: document.getElementById('game-screen') };
         const loadingText = document.getElementById('loading-text');
@@ -293,6 +294,17 @@
             if (!magicSettings || magicSettings.isActive) return;
             
             magicSettings.isActive = true;
+            
+            // Reset skor dan mulai ronde dari awal
+            if (currentGameId) {
+                await updateDoc(doc(db, 'games', currentGameId), {
+                    "player1.results": { wins: 0, losses: 0, draws: 0 },
+                    "player2.results": { wins: 0, losses: 0, draws: 0 },
+                    "magicSettings": magicSettings,
+                    "currentRound": 0
+                });
+            }
+
             const originalContent = opponentChoiceDisplay.innerHTML;
             opponentChoiceDisplay.innerHTML = `<span style="animation: sparkle-in-circle 1.2s ease-in-out;">✨</span>`;
             setTimeout(() => {
@@ -300,10 +312,6 @@
                    opponentChoiceDisplay.innerHTML = originalContent;
                 }
             }, 1200);
-            
-            if(currentGameId) {
-                await updateDoc(doc(db, 'games', currentGameId), { "magicSettings": magicSettings });
-            }
 
             if (magicSettings.mode === 'magician') {
                 magicianPlan = [];
@@ -360,7 +368,6 @@
                 const game = docSnap.data();
                 const me = game.player1;
                 const opponent = game.player2;
-                const currentRound = game.currentRound || 0;
                 
                 stopGameBtn.classList.toggle('hidden', !(me && me.uid === auth.currentUser.uid));
 
@@ -369,7 +376,8 @@
                 
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
-
+                
+                const currentRound = game.currentRound || 0;
                 if(game.magicSettings?.isActive) {
                     roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${game.magicSettings.totalRounds}`;
                 } else {
