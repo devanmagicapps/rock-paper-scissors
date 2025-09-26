@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Gunting Batu Kertas Online</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- QR Code Generator Library -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
-    <!-- Google Fonts for a fun, game-like feel -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
@@ -71,26 +68,51 @@
         }
         #notification.show { bottom: 20px; }
         #qrcode-container { border: 4px solid #f3f3f3; }
-        #game-screen { justify-content: space-between; background-color: #F7FAFC; }
+        
+        #game-screen { 
+            justify-content: center;
+            background-color: #F7FAFC; 
+            padding: 0;
+        }
         .player-area { width: 100%; text-align: center; }
+
         .choice-btn {
-            background-color: white; border-radius: 50%; padding: 1rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 1rem;
+            background-color: white; border-radius: 50%; 
+            padding: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
+            margin-bottom: 0;
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
         }
         .choice-btn:hover { transform: scale(1.1); }
-        .choice-btn img { width: 60px; height: 60px; }
+        .choice-btn img { 
+            width: 48px; 
+            height: 48px; 
+        }
         .choice-btn.selected {
             box-shadow: 0 0 0 4px #FF7E5F, 0 6px 20px rgba(255, 126, 95, 0.5);
             transform: scale(1.1);
         }
         .choice-btn.disabled { opacity: 0.5; pointer-events: none; }
+
         #opponent-choice-display {
-            width: 80px; height: 80px; margin: auto; background-color: #E2E8F0;
+            width: 100px; height: 100px;
+            margin: 0 auto;
+            border: 4px dashed #E2E8F0;
+            background-color: transparent;
+            color: #CBD5E0;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 3rem; color: #A0AEC0; transition: all 0.3s;
+            font-size: 3rem; transition: all 0.3s;
         }
-        #opponent-choice-display img { width: 50px; height: 50px; }
+        #opponent-choice-display.chosen {
+            border-style: solid;
+            border-color: #68D391;
+            color: #68D391;
+        }
+        #opponent-choice-display img { 
+            width: 60px; 
+            height: 60px;
+        }
+
         .modal-card {
             background-color: white; border-radius: 1.5rem; padding: 2rem;
             text-align: center; width: 90%; max-width: 350px;
@@ -108,11 +130,16 @@
             display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;
         }
         #result-choices-display img { width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%; }
+        
         #round-counter {
-            position: absolute; top: 1.25rem; left: 1.25rem;
+            position: absolute; top: 1rem; left: 50%;
+            transform: translateX(-50%);
             font-size: 0.9rem; font-weight: 600; color: #94a3b8;
             background-color: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
-            padding: 0.25rem 0.75rem; border-radius: 9999px;
+            padding: 0.35rem 1rem; border-radius: 9999px;
+        }
+        .vs-text {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         @keyframes sparkle-in-circle { 
             0%, 100% { opacity: 0; transform: scale(0.5); } 
@@ -148,18 +175,18 @@
     </div>
     
     <div id="menu-screen" class="screen hidden bg-gray-50">
-         <div class="w-full max-w-sm text-center">
+        <div class="w-full max-w-sm text-center">
             <h2 class="text-4xl text-gray-800 mb-6">Menu Utama</h2>
             <p class="text-gray-600 mb-10">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
             <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
             <button id="settings-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300 mb-4">Pengaturan</button>
             <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
         </div>
-         <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
+        <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
     </div>
 
     <div id="waiting-screen" class="screen hidden bg-gray-50">
-         <div class="w-full max-w-sm text-center">
+        <div class="w-full max-w-sm text-center">
             <h2 class="text-3xl text-gray-800 mb-6">Pindai Kode Ini!</h2>
             <p class="text-gray-600 mb-8">Minta lawanmu untuk memindai QR Code di bawah ini untuk memulai.</p>
             <div id="qrcode-container" class="p-4 bg-white rounded-lg shadow-md inline-block"><div id="qrcode"></div></div>
@@ -169,22 +196,32 @@
     </div>
     
     <div id="game-screen" class="screen hidden">
-        <div class="w-full max-w-sm h-full flex flex-col justify-between relative">
+        <div class="w-full max-w-sm h-full flex flex-col justify-between relative p-4">
             <div id="round-counter"></div>
-            <button id="stop-game-btn" class="hidden absolute top-0 right-0 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
-            <div class="player-area">
-                <p class="text-gray-500 text-lg">Lawan</p>
-                <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
-                <div id="opponent-choice-display" class="font-title mt-2">?</div>
+            <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
+
+            <div class="player-area text-center">
+                <div id="opponent-choice-display" class="font-title mb-4 text-4xl">?</div>
+                <div>
+                    <p class="text-gray-500 text-lg">Lawan</p>
+                    <p class="font-title text-4xl text-gray-800" id="opponent-score">0</p>
+                </div>
             </div>
-            <div class="flex flex-col items-center space-y-4">
-                <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
-                <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
-                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <p class="vs-text font-title text-5xl text-gray-300">VS</p>
             </div>
-            <div class="player-area">
-                <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
-                <p class="text-gray-500 text-lg">Kamu</p>
+            
+            <div class="player-area text-center">
+                <div>
+                    <p class="font-title text-4xl text-gray-800" id="my-score">0</p>
+                    <p class="text-gray-500 text-lg">Kamu</p>
+                </div>
+                <div id="choice-container" class="flex justify-center items-center gap-4 mt-4">
+                    <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
+                    <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
+                    <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+                </div>
             </div>
         </div>
     </div>
@@ -382,15 +419,19 @@
                     roundCounterEl.textContent = '';
                 }
                 
+                // Logika untuk menampilkan status pilihan lawan
                 if (game.magicSettings?.isActive && game.magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
+                    // Mode Peek: Tampilkan gambar pilihan lawan
                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.jpg" alt="${opponent.choice}">`;
-                    opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
+                    opponentChoiceDisplay.classList.remove("chosen");
                 } else if (opponent.choice) {
+                    // Lawan sudah memilih (tapi kita tidak bisa lihat)
                     opponentChoiceDisplay.textContent = '✓';
-                    opponentChoiceDisplay.classList.add("bg-green-200", "text-green-600");
+                    opponentChoiceDisplay.classList.add("chosen");
                 } else {
+                    // Lawan belum memilih
                     opponentChoiceDisplay.innerHTML = `?`;
-                    opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
+                    opponentChoiceDisplay.classList.remove("chosen");
                 }
 
                 if (game.gameState === 'finished') {
@@ -399,15 +440,20 @@
                     resultPopup.classList.add('hidden');
                 }
 
+                // **KODE PERBAIKAN BUG PEEK MODE ADA DI SINI**
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    if (game.magicSettings?.isActive && game.magicSettings.mode === 'magician' && me.choice === 'chosen') {
+                    const isMagicianFinalizing = game.magicSettings?.isActive && game.magicSettings.mode === 'magician' && me.choice === 'chosen';
+
+                    if (isMagicianFinalizing) {
+                        // Jika mode magician aktif dan sedang menunggu pilihan "ajaib"
                         const desiredOutcome = magicianPlan[currentRound];
                         const magicalChoice = getMagicianChoice(opponent.choice, desiredOutcome);
                         updateChoiceHighlight(magicalChoice);
                         setTimeout(() => {
-                           updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
+                            updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
                         }, 500);
-                    } else if (me.choice !== 'chosen') {
+                    } else {
+                        // Untuk semua kasus lain (Normal, Peek, atau Magician setelah pilihan ditetapkan)
                         determineWinner(gameId, game);
                     }
                 }
@@ -430,7 +476,7 @@
         }
         
         function showSummaryPopup(game) {
-            resultPopup.classList.add('hidden'); // Menutup modal hasil
+            resultPopup.classList.add('hidden');
             const me = game.player1;
             const opponent = game.player2;
             const myResults = me.results || { wins: 0, losses: 0, draws: 0 };
