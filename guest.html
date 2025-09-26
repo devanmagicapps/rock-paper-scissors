@@ -200,8 +200,9 @@
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
 
+                const currentRound = game.currentRound || 0;
                 if(game.magicSettings?.isActive) {
-                    roundCounterEl.textContent = `Ronde: ${game.currentRound + 1} / ${game.magicSettings.totalRounds}`;
+                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${game.magicSettings.totalRounds}`;
                 } else {
                     roundCounterEl.textContent = '';
                 }
@@ -220,7 +221,6 @@
                     resultPopup.classList.add('hidden');
                 }
                 
-                const currentRound = game.currentRound || 0;
                 if (game.magicSettings?.isActive && currentRound >= game.magicSettings.totalRounds - 1 && game.gameState === 'finished') {
                     showSummaryPopup(game);
                 }
