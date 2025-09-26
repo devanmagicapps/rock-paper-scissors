@@ -18,19 +18,20 @@
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none; -ms-user-select: none; user-select: none;
+            background-color: #f1f5f9; /* bg-slate-100 */
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
         }
         .screen, .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center; padding: 2.5rem 2rem;
-            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            transition: opacity 0.4s ease-in-out;
             backface-visibility: hidden;
         }
         .screen.hidden, .modal-overlay.hidden {
-            opacity: 0; transform: scale(0.95); pointer-events: none;
+            opacity: 0; pointer-events: none;
         }
         .auth-input, .settings-input {
             border: 2px solid #E2E8F0; background-color: #F7FAFC;
@@ -119,80 +120,80 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body>
 
-    <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
-        <div id="asset-preloader" class="hidden"></div>
-        <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Memuat...</p></div>
+    <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Memuat...</p></div>
 
-        <div id="auth-screen" class="screen hidden">
-            <div class="w-full text-center">
-                <h1 class="text-5xl text-gray-800 mb-4">GBK Online</h1>
-                <p class="text-gray-500 mb-10">Selamat Datang!</p>
-                <form id="register-form" class="space-y-4">
-                    <input type="email" id="register-email" placeholder="Email Anda" class="w-full rounded-lg auth-input" required>
-                    <input type="password" id="register-password" placeholder="Buat Password" class="w-full rounded-lg auth-input" required minlength="6">
-                    <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full rounded-lg auth-input" required>
-                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Daftar</button>
-                </form>
-                <form id="login-form" class="space-y-4 hidden">
-                    <input type="email" id="login-email" placeholder="Email Anda" class="w-full rounded-lg auth-input" required>
-                    <input type="password" id="login-password" placeholder="Password" class="w-full rounded-lg auth-input" required>
-                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Login</button>
-                </form>
-                <p class="mt-8 text-sm text-gray-600">
-                    <span id="login-prompt">Sudah punya akun? <a href="#" id="show-login" class="font-semibold toggle-link">Login di sini</a></span>
-                    <span id="register-prompt" class="hidden">Belum punya akun? <a href="#" id="show-register" class="font-semibold toggle-link">Daftar sekarang</a></span>
-                </p>
-            </div>
+    <div id="auth-screen" class="screen hidden">
+        <div class="w-full max-w-sm text-center">
+            <h1 class="text-5xl text-gray-800 mb-4">GBK Online</h1>
+            <p class="text-gray-500 mb-10">Selamat Datang!</p>
+            <form id="register-form" class="space-y-4">
+                <input type="email" id="register-email" placeholder="Email Anda" class="w-full rounded-lg auth-input p-4" required>
+                <input type="password" id="register-password" placeholder="Buat Password" class="w-full rounded-lg auth-input p-4" required minlength="6">
+                <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full rounded-lg auth-input p-4" required>
+                <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Daftar</button>
+            </form>
+            <form id="login-form" class="space-y-4 hidden">
+                <input type="email" id="login-email" placeholder="Email Anda" class="w-full rounded-lg auth-input p-4" required>
+                <input type="password" id="login-password" placeholder="Password" class="w-full rounded-lg auth-input p-4" required>
+                <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Login</button>
+            </form>
+            <p class="mt-8 text-sm text-gray-600">
+                <span id="login-prompt">Sudah punya akun? <a href="#" id="show-login" class="font-semibold toggle-link">Login di sini</a></span>
+                <span id="register-prompt" class="hidden">Belum punya akun? <a href="#" id="show-register" class="font-semibold toggle-link">Daftar sekarang</a></span>
+            </p>
         </div>
-        
-        <div id="menu-screen" class="screen hidden bg-gray-50">
-             <div class="w-full text-center">
-                <h2 class="text-4xl text-gray-800 mb-6">Menu Utama</h2>
-                <p class="text-gray-600 mb-10">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
-                <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
-                <button id="settings-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300 mb-4">Pengaturan</button>
-                <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
-            </div>
+        <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
+    </div>
+    
+    <div id="menu-screen" class="screen hidden bg-gray-50">
+         <div class="w-full max-w-sm text-center">
+            <h2 class="text-4xl text-gray-800 mb-6">Menu Utama</h2>
+            <p class="text-gray-600 mb-10">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
+            <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
+            <button id="settings-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300 mb-4">Pengaturan</button>
+            <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
         </div>
+         <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
+    </div>
 
-        <div id="waiting-screen" class="screen hidden bg-gray-50">
-             <div class="w-full text-center">
-                <h2 class="text-3xl text-gray-800 mb-6">Pindai Kode Ini!</h2>
-                <p class="text-gray-600 mb-8">Minta lawanmu untuk memindai QR Code di bawah ini untuk memulai.</p>
-                <div id="qrcode-container" class="p-4 bg-white rounded-lg shadow-md inline-block"><div id="qrcode"></div></div>
-                <p class="mt-8 text-gray-500 animate-pulse">Menunggu lawan bergabung...</p>
-                <button id="back-to-menu-btn" class="mt-10 w-full max-w-xs mx-auto py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Kembali ke Menu</button>
-            </div>
+    <div id="waiting-screen" class="screen hidden bg-gray-50">
+         <div class="w-full max-w-sm text-center">
+            <h2 class="text-3xl text-gray-800 mb-6">Pindai Kode Ini!</h2>
+            <p class="text-gray-600 mb-8">Minta lawanmu untuk memindai QR Code di bawah ini untuk memulai.</p>
+            <div id="qrcode-container" class="p-4 bg-white rounded-lg shadow-md inline-block"><div id="qrcode"></div></div>
+            <p class="mt-8 text-gray-500 animate-pulse">Menunggu lawan bergabung...</p>
+            <button id="back-to-menu-btn" class="mt-10 w-full max-w-xs mx-auto py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Kembali ke Menu</button>
         </div>
-        
-        <div id="game-screen" class="screen hidden">
+    </div>
+    
+    <div id="game-screen" class="screen hidden">
+        <div class="w-full max-w-sm h-full flex flex-col justify-between relative">
             <div id="round-counter"></div>
-            <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
+            <button id="stop-game-btn" class="hidden absolute top-0 right-0 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
                 <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
             <div class="flex flex-col items-center space-y-4">
-                <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
-                <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
-                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+                <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
+                <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
+                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
             </div>
             <div class="player-area">
                 <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
                 <p class="text-gray-500 text-lg">Kamu</p>
             </div>
         </div>
-        
-        <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
-        <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="new-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Mulai Permainan Baru</button></div></div>
-        <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="close-btn">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
-
-        <div id="notification"></div>
-        <p class="absolute bottom-2 w-full text-center text-xs text-gray-400 pointer-events-none">Concepted by Heri Sanjaya</p>
     </div>
+    
+    <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+    <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="new-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Mulai Permainan Baru</button></div></div>
+    <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="close-btn">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
+
+    <div id="notification"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -249,7 +250,7 @@
         function showScreen(screenElement) { Object.values(screens).forEach(s => s.classList.add('hidden')); if(screenElement) screenElement.classList.remove('hidden'); }
         function showNotification(message, isError = false) { notification.textContent = message; notification.style.backgroundColor = isError ? '#EF4444' : '#10B981'; notification.classList.add('show'); setTimeout(() => notification.classList.remove('show'), 3000); }
 
-        async function preloadAssets() { const images = ['./images/rock.jpg', './images/paper.jpg', './images/scissors.jpg', './images/win.jpg', './images/lose.jpg', './images/draw.jpg']; await Promise.all(images.map(src => new Promise((resolve, reject) => { const img = new Image(); img.src = src; img.onload = resolve; img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`)); }))); }
+        async function preloadAssets() { const images = ['./images/rock.png', './images/paper.png', './images/scissors.png', './images/win.png', './images/lose.png', './images/draw.png']; await Promise.all(images.map(src => new Promise((resolve, reject) => { const img = new Image(); img.src = src; img.onload = resolve; img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`)); }))); }
         
         async function loadMagicSettings(uid) {
             const settingsRef = doc(db, 'user_settings', uid);
@@ -374,7 +375,7 @@
                 }
                 
                 if (magicSettings?.isActive && magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
-                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.jpg" alt="${opponent.choice}">`;
+                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 } else if (opponent.choice) {
                     opponentChoiceDisplay.textContent = '✓';
@@ -415,8 +416,8 @@
             else if (p1c !== p2c) { winner = 'player2'; }
 
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player1' ? 'KAMU MENANG!' : 'KAMU KALAH!');
-            resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player1' ? './images/win.jpg' : './images/lose.jpg');
-            resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.jpg" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.jpg" alt="${p2c}">`;
+            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player1' ? './images/win.png' : './images/lose.png');
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.png" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.png" alt="${p2c}">`;
             resultPopup.classList.remove('hidden');
         }
         
