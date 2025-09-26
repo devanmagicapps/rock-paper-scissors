@@ -16,155 +16,118 @@
         /* Menggunakan font kustom */
         body {
             font-family: 'Poppins', sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Menghilangkan highlight biru saat disentuh di mobile */
+            -webkit-tap-highlight-color: transparent;
         }
-        h1, h2, button {
+        h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
         }
-
-        /* Styling dasar untuk "layar" aplikasi */
         .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 1.5rem;
             transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-            backface-visibility: hidden; /* Mencegah flicker saat animasi */
+            backface-visibility: hidden;
         }
-
-        /* Animasi untuk transisi antar layar */
         .screen.hidden {
-            opacity: 0;
-            transform: scale(0.95);
-            pointer-events: none; /* Mencegah interaksi saat tersembunyi */
+            opacity: 0; transform: scale(0.95); pointer-events: none;
         }
-
-        /* Styling untuk form input */
         .auth-input {
-            border: 2px solid #E2E8F0;
-            background-color: #F7FAFC;
+            border: 2px solid #E2E8F0; background-color: #F7FAFC;
             transition: all 0.2s ease-in-out;
         }
         .auth-input:focus {
-            outline: none;
-            border-color: #4A90E2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-            background-color: white;
+            outline: none; border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); background-color: white;
         }
-
-        /* Styling untuk tombol utama */
         .primary-btn {
             background: linear-gradient(135deg, #FF7E5F, #FEB47B);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
         }
         .primary-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6);
+            transform: translateY(-3px); box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6);
         }
-        .primary-btn:active {
-            transform: translateY(-1px);
-        }
+        .primary-btn:active { transform: translateY(-1px); }
         .primary-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: translateY(0);
+            opacity: 0.7; cursor: not-allowed; transform: translateY(0);
             box-shadow: 0 4px 15px rgba(254, 180, 123, 0.2);
         }
-
-        /* Styling untuk link toggle form */
-        .toggle-link {
-            color: #FF7E5F;
-            transition: color 0.2s;
-        }
-        .toggle-link:hover {
-            color: #e56241;
-        }
-        
-        /* Spinner untuk loading */
+        .toggle-link { color: #FF7E5F; transition: color 0.2s; }
+        .toggle-link:hover { color: #e56241; }
         .loader, .btn-loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #FF7E5F;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border: 4px solid #f3f3f3; border-top: 4px solid #FF7E5F;
+            border-radius: 50%; width: 40px; height: 40px;
             animation: spin 1s linear infinite;
         }
         .btn-loader {
-            width: 20px;
-            height: 20px;
-            border-width: 3px;
-            border-top-color: white;
-            border-left-color: white;
-            border-bottom-color: white;
+            width: 20px; height: 20px; border-width: 3px;
+            border-top-color: white; border-left-color: white; border-bottom-color: white;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Styling untuk notifikasi kustom */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #notification {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            padding: 1rem 1.5rem; border-radius: 0.5rem; color: white;
+            font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             z-index: 100;
         }
-        #notification.show {
-            bottom: 20px;
+        #notification.show { bottom: 20px; }
+        #qrcode-container { border: 4px solid #f3f3f3; }
+
+        /* Game Screen Specific Styles */
+        #game-screen { justify-content: space-between; background-color: #F7FAFC; }
+        .player-area { width: 100%; text-align: center; }
+        .choice-btn {
+            background-color: white; border-radius: 50%; padding: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 1rem;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
         }
+        .choice-btn:hover { transform: scale(1.1); }
+        .choice-btn img { width: 60px; height: 60px; }
+        .choice-btn.selected {
+            box-shadow: 0 0 0 4px #FF7E5F, 0 6px 20px rgba(255, 126, 95, 0.5);
+            transform: scale(1.1);
+        }
+        .choice-btn.disabled { opacity: 0.5; pointer-events: none; }
+        #opponent-choice-display {
+            width: 80px; height: 80px; margin: auto; background-color: #E2E8F0;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 3rem; color: #A0AEC0; transition: all 0.3s;
+        }
+        #opponent-choice-display img { width: 50px; height: 50px; }
         
-        #qrcode-container {
-            border: 4px solid #f3f3f3;
+        #result-popup {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            justify-content: center; align-items: center; flex-direction: column;
+            opacity: 0; transition: opacity 0.3s; pointer-events:none; z-index: 50;
         }
+        #result-popup.show { opacity: 1; pointer-events: all; }
+        #result-popup img { animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        @keyframes popIn { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <!-- Container Utama Aplikasi -->
     <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
-
         <!-- Layar Loading Awal -->
-        <div id="loading-screen" class="screen">
-            <div class="loader"></div>
-            <p class="mt-4 text-gray-500">Memuat...</p>
-        </div>
+        <div id="loading-screen" class="screen"><div class="loader"></div><p class="mt-4 text-gray-500">Memuat...</p></div>
 
         <!-- Layar 1: Pendaftaran & Login -->
         <div id="auth-screen" class="screen hidden">
             <div class="w-full text-center">
                 <h1 class="text-5xl text-gray-800 mb-2">GBK Online</h1>
                 <p class="text-gray-500 mb-8">Selamat Datang!</p>
-
-                <!-- Form Pendaftaran -->
                 <form id="register-form" class="space-y-4">
                     <input type="email" id="register-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
                     <input type="password" id="register-password" placeholder="Buat Password" class="w-full p-3 rounded-lg auth-input" required minlength="6">
                     <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full p-3 rounded-lg auth-input" required>
                     <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Daftar</button>
                 </form>
-
-                <!-- Form Login (Awalnya tersembunyi) -->
                 <form id="login-form" class="space-y-4 hidden">
                     <input type="email" id="login-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
                     <input type="password" id="login-password" placeholder="Password" class="w-full p-3 rounded-lg auth-input" required>
                     <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Login</button>
                 </form>
-
                 <p class="mt-6 text-sm text-gray-600">
                     <span id="login-prompt">Sudah punya akun? <a href="#" id="show-login" class="font-semibold toggle-link">Login di sini</a></span>
                     <span id="register-prompt" class="hidden">Belum punya akun? <a href="#" id="show-register" class="font-semibold toggle-link">Daftar sekarang</a></span>
@@ -187,12 +150,35 @@
              <div class="w-full text-center">
                 <h2 class="text-3xl text-gray-800 mb-4">Pindai Kode Ini!</h2>
                 <p class="text-gray-600 mb-6">Minta lawanmu untuk memindai QR Code di bawah ini untuk memulai.</p>
-                <div id="qrcode-container" class="p-4 bg-white rounded-lg shadow-md inline-block">
-                    <div id="qrcode"></div>
-                </div>
+                <div id="qrcode-container" class="p-4 bg-white rounded-lg shadow-md inline-block"><div id="qrcode"></div></div>
                 <p class="mt-6 text-gray-500 animate-pulse">Menunggu lawan bergabung...</p>
                 <button id="back-to-menu-btn" class="mt-8 w-full max-w-xs mx-auto py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Kembali ke Menu</button>
             </div>
+        </div>
+        
+        <!-- Layar 4: Arena Permainan -->
+        <div id="game-screen" class="screen hidden">
+            <div class="player-area">
+                <p class="text-gray-500 text-lg">Lawan</p>
+                <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
+                <div id="opponent-choice-display" class="font-title mt-2">?</div>
+            </div>
+            <div class="flex flex-col items-center">
+                <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
+                <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
+                <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.png" alt="Gunting"></button>
+            </div>
+            <div class="player-area">
+                <div id="my-choice-display" class="hidden"></div>
+                <p class="font-title text-3xl text-gray-800" id="my-score">0</p>
+                <p class="text-gray-500 text-lg">Kamu</p>
+            </div>
+        </div>
+        
+        <!-- Elemen Pop-up Hasil -->
+        <div id="result-popup" class="flex">
+            <img id="result-image" src="" alt="Hasil" class="w-48 h-48">
+            <p id="result-score" class="font-title text-4xl text-white mt-4"></p>
         </div>
 
         <!-- Notifikasi Kustom -->
@@ -200,12 +186,10 @@
     </div>
 
     <script type="module">
-        // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration
         const firebaseConfig = {
           apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
           authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
@@ -215,38 +199,43 @@
           appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let unsubscribeGameListener = null;
+        let currentGameId = null;
+        let currentPlayerId = null;
 
-        // --- DOM ELEMENT SELECTION ---
-        const loadingScreen = document.getElementById('loading-screen');
-        const authScreen = document.getElementById('auth-screen');
-        const menuScreen = document.getElementById('menu-screen');
-        const waitingScreen = document.getElementById('waiting-screen');
-        
+        const screens = {
+            loading: document.getElementById('loading-screen'),
+            auth: document.getElementById('auth-screen'),
+            menu: document.getElementById('menu-screen'),
+            waiting: document.getElementById('waiting-screen'),
+            game: document.getElementById('game-screen')
+        };
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
-        
         const showLoginLink = document.getElementById('show-login');
         const showRegisterLink = document.getElementById('show-register');
-
         const loginPrompt = document.getElementById('login-prompt');
         const registerPrompt = document.getElementById('register-prompt');
-        
         const notification = document.getElementById('notification');
         const userEmailSpan = document.getElementById('user-email');
         const logoutBtn = document.getElementById('logout-btn');
         const createGameBtn = document.getElementById('create-game-btn');
         const qrCodeContainer = document.getElementById('qrcode');
         const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const myScoreEl = document.getElementById('my-score');
+        const opponentScoreEl = document.getElementById('opponent-score');
+        const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
+        const choiceBtns = document.querySelectorAll('.choice-btn');
+        const resultPopup = document.getElementById('result-popup');
+        const resultImage = document.getElementById('result-image');
+        const resultScore = document.getElementById('result-score');
 
-        // --- UI LOGIC ---
         function showScreen(screenElement) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
             screenElement.classList.remove('hidden');
         }
 
@@ -266,42 +255,175 @@
                 button.innerHTML = originalText;
             }
         }
-
-        showLoginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            registerForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-            loginPrompt.classList.add('hidden');
-            registerPrompt.classList.remove('hidden');
-        });
-
-        showRegisterLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-            registerPrompt.classList.add('hidden');
-            loginPrompt.classList.remove('hidden');
-        });
         
-        backToMenuBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (unsubscribeGameListener) {
-                unsubscribeGameListener(); // Stop listening to game changes
-                unsubscribeGameListener = null;
-            }
-            showScreen(menuScreen);
-        });
+        async function handleAppLoad() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('game');
 
-        // --- FIREBASE AUTH & GAME LOGIC ---
+            if (gameId && !auth.currentUser) {
+                await joinGame(gameId);
+            }
+        }
 
         onAuthStateChanged(auth, user => {
             if (user) {
-                userEmailSpan.textContent = user.email;
-                showScreen(menuScreen);
+                currentPlayerId = user.uid;
+                if (!user.isAnonymous) {
+                    userEmailSpan.textContent = user.email;
+                    showScreen(screens.menu);
+                }
             } else {
-                showScreen(authScreen);
+                currentPlayerId = null;
+                showScreen(screens.auth);
             }
-            loadingScreen.classList.add('hidden');
+            screens.loading.classList.add('hidden');
+        });
+        
+        handleAppLoad();
+
+        async function joinGame(gameId) {
+            try {
+                showScreen(screens.loading);
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
+                
+                const gameDocRef = doc(db, 'games', gameId);
+                const gameDoc = await getDoc(gameDocRef);
+
+                if (!gameDoc.exists() || gameDoc.data().player2) {
+                    showNotification("Game tidak ditemukan atau sudah penuh.", true);
+                    showScreen(screens.auth); // Back to safety
+                    return;
+                }
+
+                await updateDoc(gameDocRef, {
+                    player2: {
+                        uid: user.uid,
+                        choice: null,
+                        score: 0,
+                        isAnonymous: true
+                    }
+                });
+
+                currentGameId = gameId;
+                startGame(gameId);
+
+            } catch (error) {
+                console.error("Error joining game:", error);
+                showNotification("Gagal bergabung ke permainan.", true);
+                showScreen(screens.auth);
+            }
+        }
+        
+        function startGame(gameId) {
+            if(unsubscribeGameListener) unsubscribeGameListener();
+
+            const gameDocRef = doc(db, "games", gameId);
+            unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
+                if (!docSnap.exists()) return;
+
+                const game = docSnap.data();
+                const isPlayer1 = game.player1.uid === currentPlayerId;
+                const me = isPlayer1 ? game.player1 : game.player2;
+                const opponent = isPlayer1 ? game.player2 : game.player1;
+
+                if (!opponent) return; // Player 2 hasn't joined yet
+
+                if(screens.game.classList.contains('hidden')) {
+                     showScreen(screens.game);
+                }
+
+                // Update scores
+                myScoreEl.textContent = me.score;
+                opponentScoreEl.textContent = opponent.score;
+                
+                // Show opponent's choice only when both have chosen
+                if(me.choice && opponent.choice) {
+                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
+                } else if(opponent.choice) {
+                    opponentChoiceDisplay.textContent = '✓';
+                    opponentChoiceDisplay.classList.add("bg-green-200", "text-green-600");
+                }
+                 else {
+                    opponentChoiceDisplay.innerHTML = `?`;
+                    opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
+                }
+
+                // Determine winner if both have chosen
+                if (game.gameState === 'waiting' && me.choice && opponent.choice) {
+                    determineWinner(gameId, game);
+                }
+                
+                // Enable/disable buttons based on whether I have chosen
+                choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice));
+            });
+        }
+
+        async function determineWinner(gameId, game) {
+            const p1c = game.player1.choice;
+            const p2c = game.player2.choice;
+            let winner = null;
+
+            if (p1c === p2c) {
+                winner = 'draw';
+            } else if (
+                (p1c === 'rock' && p2c === 'scissors') ||
+                (p1c === 'paper' && p2c === 'rock') ||
+                (p1c === 'scissors' && p2c === 'paper')
+            ) {
+                winner = 'player1';
+            } else {
+                winner = 'player2';
+            }
+
+            const isPlayer1 = game.player1.uid === currentPlayerId;
+            let resultImgSrc = '';
+            if(winner === 'draw') resultImgSrc = './images/draw.png';
+            else if ((winner === 'player1' && isPlayer1) || (winner === 'player2' && !isPlayer1)) resultImgSrc = './images/win.png';
+            else resultImgSrc = './images/lose.png';
+            
+            resultImage.src = resultImgSrc;
+            resultScore.textContent = `${game.player1.score} - ${game.player2.score}`;
+            if (winner === 'player1') resultScore.textContent = `${game.player1.score + 1} - ${game.player2.score}`;
+            else if (winner === 'player2') resultScore.textContent = `${game.player1.score} - ${game.player2.score + 1}`;
+            
+            resultPopup.classList.add('show');
+            
+            // Update score in Firestore (only one player needs to do this)
+            if (isPlayer1) {
+                const updates = { gameState: 'finished' };
+                if (winner === 'player1') updates['player1.score'] = game.player1.score + 1;
+                if (winner === 'player2') updates['player2.score'] = game.player2.score + 1;
+                await updateDoc(doc(db, 'games', gameId), updates);
+            }
+            
+            setTimeout(async () => {
+                resultPopup.classList.remove('show');
+                // Reset for next round (only by player 1)
+                if (isPlayer1) {
+                    await updateDoc(doc(db, 'games', gameId), {
+                        'player1.choice': null,
+                        'player2.choice': null,
+                        'gameState': 'waiting'
+                    });
+                }
+                 choiceBtns.forEach(btn => btn.classList.remove('selected'));
+            }, 2000);
+        }
+
+        choiceBtns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!currentGameId || btn.classList.contains('disabled')) return;
+                
+                const choice = btn.dataset.choice;
+                choiceBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+
+                const isPlayer1 = auth.currentUser.uid === (await getDoc(doc(db, 'games', currentGameId))).data().player1.uid;
+                const choiceField = isPlayer1 ? 'player1.choice' : 'player2.choice';
+
+                await updateDoc(doc(db, 'games', currentGameId), { [choiceField]: choice });
+            });
         });
 
         createGameBtn.addEventListener('click', async (e) => {
@@ -310,68 +432,45 @@
             const originalButtonText = 'Buat Game Baru';
             toggleButtonLoadingState(button, true, originalButtonText);
 
-            const currentUser = auth.currentUser;
-            if (!currentUser) {
-                showNotification("Anda harus login untuk membuat game.", true);
-                toggleButtonLoadingState(button, false, originalButtonText);
-                return;
-            }
-
             try {
-                // 1. Create a new game document in Firestore
                 const gameData = {
-                    player1: {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        choice: null,
-                        score: 0
-                    },
-                    player2: null,
-                    gameState: 'waiting',
-                    round: 1,
-                    createdAt: serverTimestamp()
+                    player1: { uid: auth.currentUser.uid, email: auth.currentUser.email, choice: null, score: 0 },
+                    player2: null, gameState: 'waiting', round: 1, createdAt: serverTimestamp()
                 };
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
-                const gameId = gameDocRef.id;
+                currentGameId = gameDocRef.id;
 
-                // 2. Generate QR Code with the game link
-                const joinUrl = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
-                qrCodeContainer.innerHTML = ''; // Clear previous QR code
-                new QRCode(qrCodeContainer, {
-                    text: joinUrl,
-                    width: 192,
-                    height: 192,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-
-                // 3. Switch to waiting screen
-                showScreen(waitingScreen);
-
-                // 4. Listen for player 2 to join
-                unsubscribeGameListener = onSnapshot(gameDocRef, (doc) => {
-                    const game = doc.data();
-                    if (game && game.player2) {
-                        unsubscribeGameListener(); // Stop listening
-                        unsubscribeGameListener = null;
-                        showNotification('Lawan ditemukan! Memulai permainan...', false);
-                        // TODO: Transition to the actual game screen
-                        // For now, let's just log it
-                        console.log("Player 2 has joined!", game.player2);
-                    }
-                });
+                const joinUrl = `${window.location.origin}${window.location.pathname}?game=${currentGameId}`;
+                qrCodeContainer.innerHTML = '';
+                new QRCode(qrCodeContainer, { text: joinUrl, width: 192, height: 192 });
+                showScreen(screens.waiting);
+                
+                startGame(currentGameId);
 
             } catch (error) {
-                console.error("Error creating game: ", error);
                 showNotification("Gagal membuat game, coba lagi.", true);
-                showScreen(menuScreen); // Go back to menu on error
+                showScreen(screens.menu);
             } finally {
                 toggleButtonLoadingState(button, false, originalButtonText);
             }
         });
 
-        // Handle registration
+        backToMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (unsubscribeGameListener) unsubscribeGameListener();
+            unsubscribeGameListener = null;
+            currentGameId = null;
+            showScreen(screens.menu);
+        });
+
+        // Other listeners
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
+        showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
+        registerForm.addEventListener('submit', async (e) => { /* ... (code unchanged) ... */ });
+        loginForm.addEventListener('submit', async (e) => { /* ... (code unchanged) ... */ });
+        logoutBtn.addEventListener('click', () => { if (unsubscribeGameListener) unsubscribeGameListener(); signOut(auth).catch(error => showNotification('Gagal keluar.', true)); });
+
+        // Dummy unchanged code for register/login to keep it concise
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('register-email').value;
@@ -379,77 +478,39 @@
             const licenseCode = document.getElementById('license-code').value.trim();
             const button = registerForm.querySelector('button');
             const originalButtonText = 'Daftar';
-
-            if (!licenseCode) {
-                showNotification('Kode lisensi tidak boleh kosong.', true);
-                return;
-            }
-
+            if (!licenseCode) { showNotification('Kode lisensi tidak boleh kosong.', true); return; }
             toggleButtonLoadingState(button, true);
-
             try {
                 const licenseRef = doc(db, 'license_codes', licenseCode);
                 const licenseSnap = await getDoc(licenseRef);
-
-                if (!licenseSnap.exists() || licenseSnap.data().isUsed) {
-                    throw new Error('Kode lisensi tidak valid atau sudah digunakan.');
-                }
-
+                if (!licenseSnap.exists() || licenseSnap.data().isUsed) { throw new Error('Kode lisensi tidak valid atau sudah digunakan.'); }
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-
-                await updateDoc(licenseRef, {
-                    isUsed: true,
-                    usedBy: user.uid,
-                    usedAt: new Date()
-                });
-
+                await updateDoc(licenseRef, { isUsed: true, usedBy: user.uid, usedAt: new Date() });
                 showNotification('Pendaftaran berhasil! Selamat datang.', false);
             } catch (error) {
                 let errorMessage = 'Terjadi kesalahan saat pendaftaran.';
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'Email ini sudah terdaftar.';
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = 'Password minimal harus 6 karakter.';
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
+                if (error.code === 'auth/email-already-in-use') { errorMessage = 'Email ini sudah terdaftar.'; } 
+                else if (error.code === 'auth/weak-password') { errorMessage = 'Password minimal harus 6 karakter.'; } 
+                else if (error.message) { errorMessage = error.message; }
                 showNotification(errorMessage, true);
-            } finally {
-                toggleButtonLoadingState(button, false, originalButtonText);
-            }
+            } finally { toggleButtonLoadingState(button, false, originalButtonText); }
         });
-
-        // Handle login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const button = loginForm.querySelector('button');
             const originalButtonText = 'Login';
-            
             toggleButtonLoadingState(button, true);
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
+            try { await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 let errorMessage = 'Email atau password salah.';
                 if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     errorMessage = 'Kombinasi email dan password salah.';
-                }
-                showNotification(errorMessage, true);
-            } finally {
-                toggleButtonLoadingState(button, false, originalButtonText);
-            }
+                } showNotification(errorMessage, true);
+            } finally { toggleButtonLoadingState(button, false, originalButtonText); }
         });
-
-        // Handle logout
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth).catch(error => {
-                showNotification('Gagal untuk keluar, coba lagi.', true);
-            });
-        });
-
     </script>
 </body>
 </html>
