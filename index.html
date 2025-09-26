@@ -194,6 +194,8 @@
         
         <!-- Layar 4: Arena Permainan -->
         <div id="game-screen" class="screen hidden">
+            <!-- Tombol Hentikan Permainan (hanya untuk host) -->
+            <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
                 <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
@@ -212,7 +214,7 @@
         </div>
         
         <!-- Elemen Pop-up Hasil (Struktur Baru) -->
-        <div id="result-popup">
+        <div id="result-popup" class="hidden">
             <div class="result-card">
                 <button id="close-popup-btn">&times;</button>
                 <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
@@ -230,7 +232,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
@@ -272,11 +274,11 @@
         const createGameBtn = document.getElementById('create-game-btn');
         const qrCodeContainer = document.getElementById('qrcode');
         const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const stopGameBtn = document.getElementById('stop-game-btn');
         const myScoreEl = document.getElementById('my-score');
         const opponentScoreEl = document.getElementById('opponent-score');
         const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
         const choiceBtns = document.querySelectorAll('.choice-btn');
-        // New popup elements
         const resultPopup = document.getElementById('result-popup');
         const resultText = document.getElementById('result-text');
         const resultImage = document.getElementById('result-image');
@@ -330,6 +332,7 @@
                         startGame(currentGameId);
                         return;
                     }
+                    // Cek jika ada game yang sedang berjalan untuk user ini
                     const gamesRef = collection(db, "games");
                     const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
                     const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
@@ -363,17 +366,25 @@
             const gameDocRef = doc(db, "games", gameId);
 
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
+                const user = auth.currentUser;
                 if (!docSnap.exists()) {
-                    showNotification("Permainan telah berakhir.", false);
+                    showNotification("Permainan telah dihentikan oleh host.", false);
                     if(unsubscribeGameListener) unsubscribeGameListener();
                     currentGameId = null;
-                    showScreen(screens.menu);
+                    // Jika guest, kembali ke auth. Jika host, kembali ke menu.
+                    if (user && !user.isAnonymous) {
+                        showScreen(screens.menu);
+                    } else {
+                        showScreen(screens.auth);
+                    }
                     return;
                 }
 
                 const game = docSnap.data();
                 if (!game.player1) return;
                 isPlayer1Global = game.player1.uid === currentPlayerId;
+                stopGameBtn.classList.toggle('hidden', !isPlayer1Global); // Tampilkan tombol stop hanya untuk host
+
                 const me = isPlayer1Global ? game.player1 : game.player2;
                 const opponent = isPlayer1Global ? game.player2 : game.player1;
                 
@@ -399,7 +410,6 @@
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 }
 
-                // Logic baru untuk menampilkan hasil
                 if (game.gameState === 'finished') {
                     showResultPopup(game);
                 } else {
@@ -407,7 +417,6 @@
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    // Hanya Player 1 yang menentukan pemenang
                     if(isPlayer1Global) determineWinner(gameId, game);
                 }
                 
@@ -467,7 +476,7 @@
             if (winner === 'player1') {
                 updates['player1.score'] = game.player1.score + 1;
             } else if (winner === 'player2') {
-                updates['2.score'] = game.player2.score + 1;
+                updates['player2.score'] = game.player2.score + 1; // BUG FIX: Was '2.score'
             }
             await updateDoc(doc(db, 'games', gameId), updates);
         }
@@ -483,7 +492,7 @@
         }
         closePopupBtn.addEventListener('click', () => {
             resultPopup.classList.remove('show');
-            resetRound(); // Hanya Player 1 yang akan berhasil menjalankan ini
+            resetRound();
         });
 
         choiceBtns.forEach(btn => {
@@ -522,12 +531,25 @@
             }
         });
 
-        backToMenuBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (unsubscribeGameListener) unsubscribeGameListener();
-            unsubscribeGameListener = null;
-            currentGameId = null;
-            showScreen(screens.menu);
+        async function stopGame() {
+            if (isPlayer1Global && currentGameId) {
+                const gameId = currentGameId;
+                if(unsubscribeGameListener) unsubscribeGameListener();
+                unsubscribeGameListener = null;
+                currentGameId = null;
+                await deleteDoc(doc(db, "games", gameId));
+                showScreen(screens.menu);
+            }
+        }
+        stopGameBtn.addEventListener('click', stopGame);
+        backToMenuBtn.addEventListener('click', stopGame);
+
+        // Handle host disconnect
+        window.addEventListener('beforeunload', (e) => {
+            if (isPlayer1Global && currentGameId) {
+                // This is not guaranteed to run, but it's the best we can do client-side
+                stopGame();
+            }
         });
 
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
