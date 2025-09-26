@@ -214,7 +214,7 @@
             waiting: document.getElementById('waiting-screen'),
             game: document.getElementById('game-screen')
         };
-        // ... (DOM element selections are the same as before)
+        
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
         const showLoginLink = document.getElementById('show-login');
@@ -247,30 +247,47 @@
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 3000);
         }
-
+        
+        // --- LOGIKA UTAMA APLIKASI ---
         onAuthStateChanged(auth, async (user) => {
             screens.loading.classList.remove('hidden');
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameIdFromUrl = urlParams.get('game');
+
             if (user) {
                 currentPlayerId = user.uid;
-                // Cek apakah user ini sedang dalam game aktif
-                const gamesRef = collection(db, "games");
-                const q = query(gamesRef, where("player1.uid", "==", user.uid));
-                const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
+                
+                // Prioritas 1: Jika ada ID game di URL (berarti guest baru bergabung)
+                if (gameIdFromUrl) {
+                    // Hapus parameter dari URL agar tidak terjadi loop saat refresh
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    currentGameId = gameIdFromUrl;
+                    startGame(currentGameId);
+                    return; // Selesai, langsung masuk game
+                }
 
-                const [player1Games, player2Games] = await Promise.all([getDocs(q), getDocs(q2)]);
-                const activeGame = player1Games.docs[0] || player2Games.docs[0];
+                // Prioritas 2: Cek apakah pengguna (bukan guest) sudah ada di dalam game aktif
+                const gamesRef = collection(db, "games");
+                const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
+                const q2 = query(gamesRef, where("player2.uid", "==", user.uid));
+                
+                const [p1Games, p2Games] = await Promise.all([getDocs(q1), getDocs(q2)]);
+                const activeGame = p1Games.docs[0] || p2Games.docs[0];
 
                 if (activeGame) {
                     currentGameId = activeGame.id;
                     startGame(currentGameId);
                 } else if (!user.isAnonymous) {
+                    // Pengguna biasa tanpa game aktif -> Tampilkan menu
                     userEmailSpan.textContent = user.email;
                     showScreen(screens.menu);
                 } else {
-                    // Guest has joined but game doc isn't ready, or they refreshed after game ended
+                    // Pengguna anonim tanpa game aktif -> Tampilkan layar login
                     showScreen(screens.auth);
                 }
+
             } else {
+                // Tidak ada pengguna yang login
                 currentPlayerId = null;
                 showScreen(screens.auth);
             }
@@ -285,21 +302,22 @@
                 if (!docSnap.exists()) {
                     showNotification("Permainan telah berakhir.", false);
                     if(unsubscribeGameListener) unsubscribeGameListener();
+                    currentGameId = null;
                     showScreen(screens.menu);
                     return;
                 };
 
                 const game = docSnap.data();
-                if (!game.player1) return; // Doc created but player1 not set yet
+                if (!game.player1) return;
                 const isPlayer1 = game.player1.uid === currentPlayerId;
                 const me = isPlayer1 ? game.player1 : game.player2;
                 const opponent = isPlayer1 ? game.player2 : game.player1;
                 
-                if (!me) { // Guest joined but their doc part isn't populated yet
+                if (!me) {
                     return;
                 }
 
-                if (!opponent) { // Player 2 hasn't joined yet
+                if (!opponent) {
                     if(screens.waiting.classList.contains('hidden')) {
                         showScreen(screens.waiting);
                     }
@@ -310,11 +328,9 @@
                      showScreen(screens.game);
                 }
 
-                // Update scores
                 myScoreEl.textContent = me.score;
                 opponentScoreEl.textContent = opponent.score;
                 
-                // Show opponent's choice only when both have chosen
                 if(me.choice && opponent.choice) {
                      opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
                 } else if(opponent.choice) {
@@ -326,18 +342,15 @@
                     opponentChoiceDisplay.classList.remove("bg-green-200", "text-green-600");
                 }
 
-                // Determine winner if both have chosen
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
                     determineWinner(gameId, game);
                 }
                 
-                // Enable/disable buttons based on whether I have chosen
                 choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice));
             });
         }
 
         async function determineWinner(gameId, game) {
-            // ... (Fungsi ini tidak berubah dari sebelumnya)
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
             let winner = null;
@@ -416,14 +429,13 @@
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
                 currentGameId = gameDocRef.id;
                 
-                // UBAH URL DI SINI untuk mengarah ke guest.html
-                const currentUrl = window.location.href.replace('index.html', '');
+                const currentUrl = window.location.href.split('?')[0].replace(/index\.html$/, '');
                 const joinUrl = `${currentUrl}guest.html?game=${currentGameId}`;
                 
                 qrCodeContainer.innerHTML = '';
                 new QRCode(qrCodeContainer, { text: joinUrl, width: 192, height: 192 });
                 
-                startGame(currentGameId); // This will show waiting screen
+                startGame(currentGameId);
 
             } catch (error) {
                 console.error("Error creating game:", error);
@@ -436,15 +448,12 @@
 
         backToMenuBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Optional: Hapus game yang belum dimulai
             if (unsubscribeGameListener) unsubscribeGameListener();
             unsubscribeGameListener = null;
             currentGameId = null;
             showScreen(screens.menu);
         });
 
-        // Other listeners (login, register, etc. are unchanged)
-        // ... (kode dari versi sebelumnya bisa disalin di sini)
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
         showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
         registerForm.addEventListener('submit', async (e) => {
