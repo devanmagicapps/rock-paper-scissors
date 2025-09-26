@@ -353,8 +353,10 @@
         async function determineWinner(gameId, game) {
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
+            const isPlayer1 = game.player1.uid === currentPlayerId;
             let winner = null;
 
+            // 1. Determine the winner ('player1', 'player2', or 'draw')
             if (p1c === p2c) {
                 winner = 'draw';
             } else if (
@@ -367,26 +369,39 @@
                 winner = 'player2';
             }
 
-            const isPlayer1 = game.player1.uid === currentPlayerId;
-            let resultImgSrc = '';
-            if(winner === 'draw') resultImgSrc = './images/draw.png';
-            else if ((winner === 'player1' && isPlayer1) || (winner === 'player2' && !isPlayer1)) resultImgSrc = './images/win.png';
-            else resultImgSrc = './images/lose.png';
-            
-            resultImage.src = resultImgSrc;
-            resultScore.textContent = `${game.player1.score} - ${game.player2.score}`;
-            if (winner === 'player1') resultScore.textContent = `${game.player1.score + 1} - ${game.player2.score}`;
-            else if (winner === 'player2') resultScore.textContent = `${game.player1.score} - ${game.player2.score + 1}`;
-            
-            resultPopup.classList.add('show');
-            
+            // 2. Player 1 is responsible for updating the database to prevent race conditions
             if (isPlayer1) {
                 const updates = { gameState: 'finished' };
-                if (winner === 'player1') updates['player1.score'] = game.player1.score + 1;
-                if (winner === 'player2') updates['player2.score'] = game.player2.score + 1;
+                if (winner === 'player1') {
+                    updates['player1.score'] = game.player1.score + 1;
+                } else if (winner === 'player2') {
+                    updates['player2.score'] = game.player2.score + 1;
+                }
+                // If it's a draw, no score is updated, only the game state
                 await updateDoc(doc(db, 'games', gameId), updates);
             }
+
+            // 3. Calculate final scores for display
+            let finalP1Score = game.player1.score;
+            let finalP2Score = game.player2.score;
+            if (winner === 'player1') finalP1Score++;
+            if (winner === 'player2') finalP2Score++;
+
+            // 4. Determine result image and update the popup
+            let resultImgSrc = '';
+            if (winner === 'draw') {
+                resultImgSrc = './images/draw.png';
+            } else if ((winner === 'player1' && isPlayer1) || (winner === 'player2' && !isPlayer1)) {
+                resultImgSrc = './images/win.png';
+            } else {
+                resultImgSrc = './images/lose.png';
+            }
             
+            resultImage.src = resultImgSrc;
+            resultScore.textContent = `${finalP1Score} - ${finalP2Score}`;
+            resultPopup.classList.add('show');
+            
+            // 5. After 2 seconds, Player 1 resets the round
             setTimeout(async () => {
                 resultPopup.classList.remove('show');
                 if (isPlayer1) {
@@ -396,7 +411,7 @@
                         'gameState': 'waiting'
                     });
                 }
-                 choiceBtns.forEach(btn => btn.classList.remove('selected'));
+                choiceBtns.forEach(btn => btn.classList.remove('selected'));
             }, 2000);
         }
 
