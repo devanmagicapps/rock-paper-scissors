@@ -362,8 +362,8 @@
                 if (!me || !opponent) { showScreen(screens.waiting); return; }
                 if(screens.game.classList.contains('hidden')) showScreen(screens.game);
                 
-                myScoreEl.textContent = me.results.wins;
-                opponentScoreEl.textContent = opponent.results.wins;
+                myScoreEl.textContent = opponent.results?.wins ?? 0;
+                opponentScoreEl.textContent = me.results?.wins ?? 0;
 
                 if(magicSettings && magicSettings.isActive) {
                     roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${magicSettings.totalRounds}`;
@@ -421,14 +421,17 @@
         function showSummaryPopup(game) {
             const me = game.player1;
             const opponent = game.player2;
+            const myResults = me.results || { wins: 0, losses: 0, draws: 0 };
+            const opponentResults = opponent.results || { wins: 0, losses: 0, draws: 0 };
+
             summaryDetails.innerHTML = `
                 <div class="border-t border-b py-2">
                     <h3 class="font-semibold text-lg text-gray-700">Skor Kamu</h3>
-                    <p class="text-gray-500">Menang: ${me.results.wins}, Kalah: ${me.results.losses}, Seri: ${me.results.draws}</p>
+                    <p class="text-gray-500">Menang: ${myResults.wins}, Kalah: ${myResults.losses}, Seri: ${myResults.draws}</p>
                 </div>
                 <div>
                     <h3 class="font-semibold text-lg text-gray-700">Skor Lawan</h3>
-                    <p class="text-gray-500">Menang: ${opponent.results.wins}, Kalah: ${opponent.results.losses}, Seri: ${opponent.results.draws}</p>
+                    <p class="text-gray-500">Menang: ${opponentResults.wins}, Kalah: ${opponentResults.losses}, Seri: ${opponentResults.draws}</p>
                 </div>`;
             summaryModal.classList.remove('hidden');
         }
