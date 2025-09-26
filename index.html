@@ -209,7 +209,6 @@
         let currentGameId = null;
         let magicSettings = null;
         let magicianPlan = [];
-        let currentRound = 0;
 
         const screens = { loading: document.getElementById('loading-screen'), auth: document.getElementById('auth-screen'), menu: document.getElementById('menu-screen'), waiting: document.getElementById('waiting-screen'), game: document.getElementById('game-screen') };
         const loadingText = document.getElementById('loading-text');
@@ -295,7 +294,6 @@
             
             magicSettings.isActive = true;
             
-            // Reset skor dan mulai ronde dari awal
             if (currentGameId) {
                 await updateDoc(doc(db, 'games', currentGameId), {
                     "player1.results": { wins: 0, losses: 0, draws: 0 },
