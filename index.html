@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunting Batu Kertas Online</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a fun, game-like feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        /* Menggunakan font kustom */
+        body {
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Menghilangkan highlight biru saat disentuh di mobile */
+        }
+        h1, h2, button {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Styling dasar untuk "layar" aplikasi */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            backface-visibility: hidden; /* Mencegah flicker saat animasi */
+        }
+
+        /* Animasi untuk transisi antar layar */
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none; /* Mencegah interaksi saat tersembunyi */
+        }
+
+        /* Styling untuk form input */
+        .auth-input {
+            border: 2px solid #E2E8F0;
+            background-color: #F7FAFC;
+            transition: all 0.2s ease-in-out;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+            background-color: white;
+        }
+
+        /* Styling untuk tombol utama */
+        .primary-btn {
+            background: linear-gradient(135deg, #FF7E5F, #FEB47B);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
+        }
+        .primary-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6);
+        }
+        .primary-btn:active {
+            transform: translateY(-1px);
+        }
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(254, 180, 123, 0.2);
+        }
+
+        /* Styling untuk link toggle form */
+        .toggle-link {
+            color: #FF7E5F;
+            transition: color 0.2s;
+        }
+        .toggle-link:hover {
+            color: #e56241;
+        }
+        
+        /* Spinner untuk loading */
+        .loader, .btn-loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF7E5F;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .btn-loader {
+            width: 20px;
+            height: 20px;
+            border-width: 3px;
+            border-top-color: white;
+            border-left-color: white;
+            border-bottom-color: white;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styling untuk notifikasi kustom */
+        #notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 100;
+        }
+        #notification.show {
+            bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <!-- Container Utama Aplikasi -->
+    <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
+
+        <!-- Layar Loading Awal -->
+        <div id="loading-screen" class="screen">
+            <div class="loader"></div>
+            <p class="mt-4 text-gray-500">Memuat...</p>
+        </div>
+
+        <!-- Layar 1: Pendaftaran & Login -->
+        <div id="auth-screen" class="screen hidden">
+            <div class="w-full text-center">
+                <h1 class="text-5xl text-gray-800 mb-2">GBK Online</h1>
+                <p class="text-gray-500 mb-8">Selamat Datang!</p>
+
+                <!-- Form Pendaftaran -->
+                <form id="register-form" class="space-y-4">
+                    <input type="email" id="register-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
+                    <input type="password" id="register-password" placeholder="Buat Password" class="w-full p-3 rounded-lg auth-input" required minlength="6">
+                    <input type="text" id="license-code" placeholder="Kode Lisensi" class="w-full p-3 rounded-lg auth-input" required>
+                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Daftar</button>
+                </form>
+
+                <!-- Form Login (Awalnya tersembunyi) -->
+                <form id="login-form" class="space-y-4 hidden">
+                    <input type="email" id="login-email" placeholder="Email Anda" class="w-full p-3 rounded-lg auth-input" required>
+                    <input type="password" id="login-password" placeholder="Password" class="w-full p-3 rounded-lg auth-input" required>
+                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider">Login</button>
+                </form>
+
+                <p class="mt-6 text-sm text-gray-600">
+                    <span id="login-prompt">Sudah punya akun? <a href="#" id="show-login" class="font-semibold toggle-link">Login di sini</a></span>
+                    <span id="register-prompt" class="hidden">Belum punya akun? <a href="#" id="show-register" class="font-semibold toggle-link">Daftar sekarang</a></span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Layar 2: Menu Utama (Setelah Login) -->
+        <div id="menu-screen" class="screen hidden bg-gray-50">
+             <div class="w-full text-center">
+                <h2 class="text-4xl text-gray-800 mb-4">Menu Utama</h2>
+                <p class="text-gray-600 mb-8">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
+                <button id="create-game-btn" class="w-full py-3 text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
+                <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
+            </div>
+        </div>
+
+        <!-- Notifikasi Kustom -->
+        <div id="notification"></div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
+          authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
+          projectId: "rock-paper-scissors-prediction",
+          storageBucket: "rock-paper-scissors-prediction.appspot.com",
+          messagingSenderId: "342279845813",
+          appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DOM ELEMENT SELECTION ---
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        const menuScreen = document.getElementById('menu-screen');
+        
+        const registerForm = document.getElementById('register-form');
+        const loginForm = document.getElementById('login-form');
+        
+        const showLoginLink = document.getElementById('show-login');
+        const showRegisterLink = document.getElementById('show-register');
+
+        const loginPrompt = document.getElementById('login-prompt');
+        const registerPrompt = document.getElementById('register-prompt');
+        
+        const notification = document.getElementById('notification');
+        const userEmailSpan = document.getElementById('user-email');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // --- UI LOGIC ---
+        function showScreen(screenElement) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            screenElement.classList.remove('hidden');
+        }
+
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? '#EF4444' : '#10B981';
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        function toggleButtonLoadingState(button, isLoading, originalText) {
+            if (isLoading) {
+                button.disabled = true;
+                button.innerHTML = `<div class="btn-loader"></div>`;
+            } else {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            loginPrompt.classList.add('hidden');
+            registerPrompt.classList.remove('hidden');
+        });
+
+        showRegisterLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            registerPrompt.classList.add('hidden');
+            loginPrompt.classList.remove('hidden');
+        });
+
+        // --- FIREBASE AUTHENTICATION LOGIC ---
+
+        // Listen for authentication state changes
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                // User is signed in
+                userEmailSpan.textContent = user.email;
+                showScreen(menuScreen);
+            } else {
+                // User is signed out
+                showScreen(authScreen);
+            }
+            loadingScreen.classList.add('hidden'); // Hide loading screen once auth state is determined
+        });
+
+        // Handle registration
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const licenseCode = document.getElementById('license-code').value.trim();
+            const button = registerForm.querySelector('button');
+            const originalButtonText = 'Daftar';
+
+            if (!licenseCode) {
+                showNotification('Kode lisensi tidak boleh kosong.', true);
+                return;
+            }
+
+            toggleButtonLoadingState(button, true);
+
+            try {
+                // 1. Check license code in Firestore
+                const licenseRef = doc(db, 'license_codes', licenseCode);
+                const licenseSnap = await getDoc(licenseRef);
+
+                if (!licenseSnap.exists() || licenseSnap.data().isUsed) {
+                    throw new Error('Kode lisensi tidak valid atau sudah digunakan.');
+                }
+
+                // 2. If license is valid, create user
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 3. Mark license as used
+                await updateDoc(licenseRef, {
+                    isUsed: true,
+                    usedBy: user.uid,
+                    usedAt: new Date()
+                });
+
+                showNotification('Pendaftaran berhasil! Selamat datang.', false);
+                // onAuthStateChanged will handle screen transition
+            } catch (error) {
+                let errorMessage = 'Terjadi kesalahan saat pendaftaran.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Email ini sudah terdaftar.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Password minimal harus 6 karakter.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                showNotification(errorMessage, true);
+            } finally {
+                toggleButtonLoadingState(button, false, originalButtonText);
+            }
+        });
+
+        // Handle login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const button = loginForm.querySelector('button');
+            const originalButtonText = 'Login';
+            
+            toggleButtonLoadingState(button, true);
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle screen transition
+            } catch (error) {
+                let errorMessage = 'Email atau password salah.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Kombinasi email dan password salah.';
+                }
+                showNotification(errorMessage, true);
+            } finally {
+                toggleButtonLoadingState(button, false, originalButtonText);
+            }
+        });
+
+        // Handle logout
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).catch(error => {
+                showNotification('Gagal untuk keluar, coba lagi.', true);
+            });
+        });
+
+    </script>
+</body>
+</html>
