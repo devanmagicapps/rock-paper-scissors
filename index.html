@@ -17,10 +17,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            /* Mencegah highlight teks */
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+            -webkit-user-select: none; -ms-user-select: none; user-select: none;
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
@@ -47,9 +44,7 @@
             background: linear-gradient(135deg, #FF7E5F, #FEB47B);
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
         }
-        .primary-btn:hover {
-            transform: translateY(-3px); box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6);
-        }
+        .primary-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6); }
         .primary-btn:active { transform: translateY(-1px); }
         .primary-btn:disabled {
             opacity: 0.7; cursor: not-allowed; transform: translateY(0);
@@ -71,8 +66,7 @@
             position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
             padding: 1rem 1.5rem; border-radius: 0.5rem; color: white;
             font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 100;
+            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 100;
         }
         #notification.show { bottom: 20px; }
         #qrcode-container { border: 4px solid #f3f3f3; }
@@ -96,8 +90,7 @@
             font-size: 3rem; color: #A0AEC0; transition: all 0.3s;
         }
         #opponent-choice-display img { width: 50px; height: 50px; }
-        #result-popup { z-index: 50; }
-        .result-card {
+        .modal-card {
             background-color: white; border-radius: 1.5rem; padding: 2rem;
             text-align: center; width: 90%; max-width: 350px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;
@@ -111,24 +104,18 @@
         }
         .close-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
         #result-choices-display {
-            display: flex; justify-content: center; align-items: center;
-            gap: 1rem; margin-top: 1rem;
+            display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;
         }
-        #result-choices-display img {
-            width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%;
+        #result-choices-display img { width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%; }
+        #round-counter {
+            position: absolute; top: 1.25rem; left: 1.25rem;
+            font-size: 0.9rem; font-weight: 600; color: #94a3b8;
+            background-color: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+            padding: 0.25rem 0.75rem; border-radius: 9999px;
         }
-        #magic-indicator {
-            position: absolute; top: 1rem; left: 50%; transform: translateX(-50%);
-            font-size: 2rem; opacity: 0;
-            pointer-events: none; /* Pastikan tidak menghalangi klik */
-        }
-        #magic-indicator.show {
-            animation: sparkle 1.2s ease-in-out forwards;
-        }
-        @keyframes sparkle { 
-            0% { opacity: 0; transform: translateX(-50%) scale(0.5); } 
-            10%, 90% { opacity: 1; transform: translateX(-50%) scale(1.2); } 
-            100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+        @keyframes sparkle-in-circle { 
+            0%, 100% { opacity: 0; transform: scale(0.5); } 
+            50% { opacity: 1; transform: scale(1.2); } 
         }
     </style>
 </head>
@@ -136,11 +123,8 @@
 
     <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
         <div id="asset-preloader" class="hidden"></div>
-        
-        <!-- Layar Loading Awal -->
         <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Memuat...</p></div>
 
-        <!-- Layar 1: Pendaftaran & Login -->
         <div id="auth-screen" class="screen hidden">
             <div class="w-full text-center">
                 <h1 class="text-5xl text-gray-800 mb-2">GBK Online</h1>
@@ -163,19 +147,16 @@
             </div>
         </div>
         
-        <!-- Layar 2: Menu Utama (Setelah Login) -->
         <div id="menu-screen" class="screen hidden bg-gray-50">
              <div class="w-full text-center">
                 <h2 class="text-4xl text-gray-800 mb-4">Menu Utama</h2>
                 <p class="text-gray-600 mb-8">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
                 <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
-                <!-- Tombol Pengaturan Baru -->
                 <button id="settings-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300 mb-4">Pengaturan</button>
                 <button id="logout-btn" class="w-full py-3 text-gray-600 bg-gray-200 rounded-lg text-lg tracking-wider transition hover:bg-gray-300">Keluar</button>
             </div>
         </div>
 
-        <!-- Layar 3: Ruang Tunggu & QR Code -->
         <div id="waiting-screen" class="screen hidden bg-gray-50">
              <div class="w-full text-center">
                 <h2 class="text-3xl text-gray-800 mb-4">Pindai Kode Ini!</h2>
@@ -186,9 +167,8 @@
             </div>
         </div>
         
-        <!-- Layar 4: Arena Permainan -->
         <div id="game-screen" class="screen hidden">
-            <div id="magic-indicator">✨</div>
+            <div id="round-counter"></div>
             <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
@@ -206,57 +186,9 @@
             </div>
         </div>
         
-        <!-- Pop-up Hasil -->
-        <div id="result-popup" class="modal-overlay hidden">
-            <div class="result-card">
-                <button id="close-popup-btn" class="close-btn">&times;</button>
-                <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
-                <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
-                <div id="result-choices-display"></div>
-            </div>
-        </div>
-
-        <!-- Modal Pengaturan Baru -->
-        <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50">
-            <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative animate-pop-in">
-                <button id="close-settings-btn" class="close-btn">&times;</button>
-                <h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2>
-                <form id="settings-form" class="space-y-4">
-                    <div>
-                        <label class="font-semibold text-gray-600">Total Ronde</label>
-                        <input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label class="font-semibold text-gray-600">Menang</label>
-                            <input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
-                        </div>
-                        <div>
-                            <label class="font-semibold text-gray-600">Kalah</label>
-                            <input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
-                        </div>
-                        <div>
-                            <label class="font-semibold text-gray-600">Seri</label>
-                            <input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="font-semibold text-gray-600">Mode Permainan</label>
-                        <div class="mt-2 space-y-2">
-                            <label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400">
-                                <input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400">
-                                <span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span>
-                            </label>
-                             <label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400">
-                                <input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400">
-                                <span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span>
-                            </label>
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button>
-                </form>
-            </div>
-        </div>
+        <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+        <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="new-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Mulai Permainan Baru</button></div></div>
+        <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="close-btn">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
 
         <div id="notification"></div>
     </div>
@@ -264,38 +196,20 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, onSnapshot, query, where, getDocs, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- KONFIGURASI ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
-          authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
-          projectId: "rock-paper-scissors-prediction",
-          storageBucket: "rock-paper-scissors-prediction.appspot.com",
-          messagingSenderId: "342279845813",
-          appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
-        };
-
-        // --- INISIALISASI ---
+        const firebaseConfig = { apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg", authDomain: "rock-paper-scissors-prediction.firebaseapp.com", projectId: "rock-paper-scissors-prediction", storageBucket: "rock-paper-scissors-prediction.appspot.com", messagingSenderId: "342279845813", appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- STATE GLOBAL ---
         let unsubscribeGameListener = null;
         let currentGameId = null;
         let magicSettings = null;
         let magicianPlan = [];
         let currentRound = 0;
 
-        // --- ELEMEN DOM ---
-        const screens = {
-            loading: document.getElementById('loading-screen'),
-            auth: document.getElementById('auth-screen'),
-            menu: document.getElementById('menu-screen'),
-            waiting: document.getElementById('waiting-screen'),
-            game: document.getElementById('game-screen')
-        };
+        const screens = { loading: document.getElementById('loading-screen'), auth: document.getElementById('auth-screen'), menu: document.getElementById('menu-screen'), waiting: document.getElementById('waiting-screen'), game: document.getElementById('game-screen') };
         const loadingText = document.getElementById('loading-text');
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
@@ -323,188 +237,119 @@
         const settingsModal = document.getElementById('settings-modal');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
         const settingsForm = document.getElementById('settings-form');
-        const magicIndicator = document.getElementById('magic-indicator');
         const gameScreen = document.getElementById('game-screen');
+        const roundCounterEl = document.getElementById('round-counter');
+        const summaryModal = document.getElementById('summary-modal');
+        const summaryDetails = document.getElementById('summary-details');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const targetOutcomesInputs = document.getElementById('target-outcomes-inputs');
+        const magicModeRadios = document.querySelectorAll('input[name="magic-mode"]');
 
-        // --- FUNGSI ---
-        function showScreen(screenElement) {
-            Object.values(screens).forEach(s => s.classList.add('hidden'));
-            if(screenElement) screenElement.classList.remove('hidden');
-        }
+        function showScreen(screenElement) { Object.values(screens).forEach(s => s.classList.add('hidden')); if(screenElement) screenElement.classList.remove('hidden'); }
+        function showNotification(message, isError = false) { notification.textContent = message; notification.style.backgroundColor = isError ? '#EF4444' : '#10B981'; notification.classList.add('show'); setTimeout(() => notification.classList.remove('show'), 3000); }
 
-        function showNotification(message, isError = false) {
-            notification.textContent = message;
-            notification.style.backgroundColor = isError ? '#EF4444' : '#10B981';
-            notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        }
-
-        async function preloadAssets() {
-            const images = [
-                './images/rock.png', './images/paper.png', './images/scissors.png',
-                './images/win.png', './images/lose.png', './images/draw.png'
-            ];
-            const promises = images.map(src => {
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.src = src;
-                    img.onload = resolve;
-                    img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`));
-                });
-            });
-            await Promise.all(promises);
-        }
+        async function preloadAssets() { const images = ['./images/rock.png', './images/paper.png', './images/scissors.png', './images/win.png', './images/lose.png', './images/draw.png']; await Promise.all(images.map(src => new Promise((resolve, reject) => { const img = new Image(); img.src = src; img.onload = resolve; img.onerror = () => reject(new Error(`Gagal memuat gambar: ${src}`)); }))); }
         
-        // --- LOGIKA SULAP ---
         async function loadMagicSettings(uid) {
-            // Untuk menyimpan pengaturan sulap di Firestore,
-            // pastikan Anda punya Security Rule berikut:
-            // match /user_settings/{userId} {
-            //   allow read, write: if request.auth.uid == userId;
-            // }
             const settingsRef = doc(db, 'user_settings', uid);
             const docSnap = await getDoc(settingsRef);
-
             if (docSnap.exists()) {
                 magicSettings = docSnap.data();
-                // Update form dengan data yang tersimpan
                 document.getElementById('total-rounds-input').value = magicSettings.totalRounds;
                 document.getElementById('wins-input').value = magicSettings.targetWins;
                 document.getElementById('losses-input').value = magicSettings.targetLosses;
                 document.getElementById('draws-input').value = magicSettings.targetDraws;
                 document.querySelector(`input[name="magic-mode"][value="${magicSettings.mode}"]`).checked = true;
             } else {
-                // Buat pengaturan default jika tidak ada
-                magicSettings = { totalRounds: 5, targetWins: 2, targetLosses: 2, targetDraws: 1, mode: 'magician', isActive: false };
+                magicSettings = { totalRounds: 5, targetWins: 2, targetLosses: 2, targetDraws: 1, mode: 'magician' };
             }
+            magicSettings.isActive = false; 
+            updateSettingsUI(magicSettings.mode);
         }
 
         async function saveMagicSettings() {
+            const mode = document.querySelector('input[name="magic-mode"]:checked').value;
             const totalRounds = parseInt(document.getElementById('total-rounds-input').value);
             const wins = parseInt(document.getElementById('wins-input').value);
             const losses = parseInt(document.getElementById('losses-input').value);
             const draws = parseInt(document.getElementById('draws-input').value);
             
-            if (wins < 0 || losses < 0 || draws < 0 || totalRounds < 1) {
-                showNotification("Nilai tidak boleh negatif.", true);
-                return false;
-            }
-            if (wins + losses + draws !== totalRounds) {
-                showNotification("Jumlah hasil (menang/kalah/seri) harus sama dengan total ronde.", true);
-                return false;
-            }
+            if (mode === 'magician' && (wins + losses + draws !== totalRounds)) { showNotification("Jumlah hasil harus sama dengan total ronde.", true); return false; }
 
-            const newSettings = {
-                totalRounds,
-                targetWins: wins,
-                targetLosses: losses,
-                targetDraws: draws,
-                mode: document.querySelector('input[name="magic-mode"]:checked').value,
-            };
+            const newSettings = { totalRounds, mode, targetWins: wins, targetLosses: losses, targetDraws: draws };
             
             try {
                 const user = auth.currentUser;
                 if (!user) throw new Error("Pengguna tidak login");
-                const settingsRef = doc(db, 'user_settings', user.uid);
-                await setDoc(settingsRef, newSettings);
-                
-                magicSettings = { ...newSettings, isActive: false }; // Update state lokal
-                showNotification("Pengaturan sulap disimpan!", false);
+                await setDoc(doc(db, 'user_settings', user.uid), newSettings);
+                magicSettings = { ...newSettings, isActive: false };
+                showNotification("Pengaturan disimpan!", false);
                 return true;
-            } catch (error) {
-                console.error("Gagal menyimpan pengaturan:", error);
-                showNotification("Gagal menyimpan pengaturan.", true);
-                return false;
-            }
+            } catch (error) { console.error("Gagal menyimpan:", error); showNotification("Gagal menyimpan pengaturan.", true); return false; }
         }
 
         function activateMagic() {
             if (!magicSettings || magicSettings.isActive) return;
             
             magicSettings.isActive = true;
-            magicIndicator.classList.add('show');
-            
-            console.log("Mode sulap diaktifkan!");
+            const originalContent = opponentChoiceDisplay.innerHTML;
+            opponentChoiceDisplay.innerHTML = `<span style="animation: sparkle-in-circle 1.2s ease-in-out;">✨</span>`;
+            setTimeout(() => {
+                if(opponentChoiceDisplay.innerHTML.includes('sparkle')) {
+                   opponentChoiceDisplay.innerHTML = originalContent;
+                }
+            }, 1200);
 
             if (magicSettings.mode === 'magician') {
                 magicianPlan = [];
                 for (let i = 0; i < magicSettings.targetWins; i++) magicianPlan.push('win');
                 for (let i = 0; i < magicSettings.targetLosses; i++) magicianPlan.push('lose');
                 for (let i = 0; i < magicSettings.targetDraws; i++) magicianPlan.push('draw');
-                for (let i = magicianPlan.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [magicianPlan[i], magicianPlan[j]] = [magicianPlan[j], magicianPlan[i]];
-                }
+                for (let i = magicianPlan.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [magicianPlan[i], magicianPlan[j]] = [magicianPlan[j], magicianPlan[i]]; }
             }
         }
 
         function getMagicianChoice(opponentChoice, desiredOutcome) {
-            if (desiredOutcome === 'win') {
-                if (opponentChoice === 'rock') return 'paper';
-                if (opponentChoice === 'paper') return 'scissors';
-                if (opponentChoice === 'scissors') return 'rock';
-            } else if (desiredOutcome === 'lose') {
-                if (opponentChoice === 'rock') return 'scissors';
-                if (opponentChoice === 'paper') return 'rock';
-                if (opponentChoice === 'scissors') return 'paper';
-            }
+            if (desiredOutcome === 'win') { if (opponentChoice === 'rock') return 'paper'; if (opponentChoice === 'paper') return 'scissors'; return 'rock'; } 
+            else if (desiredOutcome === 'lose') { if (opponentChoice === 'rock') return 'scissors'; if (opponentChoice === 'paper') return 'rock'; return 'paper'; }
             return opponentChoice;
         }
+        
+        function updateChoiceHighlight(choice) {
+            choiceBtns.forEach(b => b.classList.remove('selected'));
+            const btnToSelect = document.querySelector(`.choice-btn[data-choice="${choice}"]`);
+            if (btnToSelect) btnToSelect.classList.add('selected');
+        }
 
-        // --- LOGIKA UTAMA APLIKASI ---
         onAuthStateChanged(auth, async (user) => {
             try {
                 loadingText.textContent = 'Memuat aset...';
                 await preloadAssets();
                 loadingText.textContent = 'Memuat...';
-
                 if (user) {
-                    // Jalankan pembersihan di latar belakang tanpa menunggu
-                    const gamesRef = collection(db, "games");
-                    const q = query(gamesRef, where("player1.uid", "==", user.uid));
-                    getDocs(q).then(staleGames => {
-                        staleGames.forEach(gameDoc => deleteDoc(doc(db, "games", gameDoc.id)));
-                    });
-                    
-                    if (!user.isAnonymous) {
-                        await loadMagicSettings(user.uid);
-                        userEmailSpan.textContent = user.email;
-                        showScreen(screens.menu);
-                    } else {
-                         signOut(auth).finally(() => showScreen(screens.auth));
-                    }
-                } else {
-                    currentPlayerId = null;
-                    showScreen(screens.auth);
-                }
-            } catch(error) {
-                console.error("Gagal saat inisialisasi aplikasi:", error);
-                loadingText.textContent = 'Gagal memuat aset.';
-                showNotification(error.message || 'Gagal memuat aset. Pastikan folder /images ada.', true);
-            } finally {
-                screens.loading.classList.add('hidden');
-            }
+                    getDocs(query(collection(db, "games"), where("player1.uid", "==", user.uid))).then(snap => snap.forEach(gameDoc => deleteDoc(doc(db, "games", gameDoc.id))));
+                    if (!user.isAnonymous) { await loadMagicSettings(user.uid); userEmailSpan.textContent = user.email; showScreen(screens.menu); } 
+                    else { signOut(auth).finally(() => showScreen(screens.auth)); }
+                } else { showScreen(screens.auth); }
+            } catch(error) { console.error("Gagal inisialisasi:", error); loadingText.textContent = 'Gagal memuat aset.'; showNotification(error.message || 'Gagal memuat aset.', true);
+            } finally { screens.loading.classList.add('hidden'); }
         });
 
         function startGame(gameId) {
             currentRound = 0;
             if (magicSettings) magicSettings.isActive = false;
+            currentGameId = gameId;
 
             if(unsubscribeGameListener) unsubscribeGameListener();
             const gameDocRef = doc(db, "games", gameId);
 
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
-                const user = auth.currentUser;
                 if (!docSnap.exists()) {
-                    if(unsubscribeGameListener) {
-                        unsubscribeGameListener();
-                        unsubscribeGameListener = null;
-                    }
+                    if(unsubscribeGameListener) { unsubscribeGameListener(); unsubscribeGameListener = null; }
                     currentGameId = null;
+                    if (screens.game.classList.contains('hidden')) return;
                     showNotification("Permainan telah berakhir.", false);
-                    if (user && !user.isAnonymous) {
-                        showScreen(screens.menu);
-                    }
+                    if (auth.currentUser && !auth.currentUser.isAnonymous) showScreen(screens.menu);
                     return;
                 }
 
@@ -512,18 +357,19 @@
                 const me = game.player1;
                 const opponent = game.player2;
                 
-                stopGameBtn.classList.toggle('hidden', !(me && me.uid === user.uid));
+                stopGameBtn.classList.toggle('hidden', !(me && me.uid === auth.currentUser.uid));
 
-                if (!me) return;
-                if (!opponent) {
-                    showScreen(screens.waiting);
-                    return;
-                }
-                
+                if (!me || !opponent) { showScreen(screens.waiting); return; }
                 if(screens.game.classList.contains('hidden')) showScreen(screens.game);
                 
-                myScoreEl.textContent = me.score;
-                opponentScoreEl.textContent = opponent.score;
+                myScoreEl.textContent = me.results.wins;
+                opponentScoreEl.textContent = opponent.results.wins;
+
+                if(magicSettings && magicSettings.isActive) {
+                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${magicSettings.totalRounds}`;
+                } else {
+                    roundCounterEl.textContent = '';
+                }
                 
                 if (magicSettings && magicSettings.isActive && magicSettings.mode === 'peek' && opponent.choice) {
                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
@@ -543,10 +389,13 @@
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
-                    if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician' && me.choice === 'chosen') {
+                    if (magicSettings?.isActive && magicSettings.mode === 'magician' && me.choice === 'chosen') {
                         const desiredOutcome = magicianPlan[currentRound];
                         const magicalChoice = getMagicianChoice(opponent.choice, desiredOutcome);
-                        updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
+                        updateChoiceHighlight(magicalChoice);
+                        setTimeout(() => {
+                           updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
+                        }, 500); // Jeda sesaat untuk feedback visual
                     } else if (me.choice !== 'chosen') {
                         determineWinner(gameId, game);
                     }
@@ -560,208 +409,147 @@
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
             let winner = 'draw';
-            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
-                winner = 'player1';
-            } else if (p1c !== p2c) {
-                winner = 'player2';
-            }
+            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) { winner = 'player1'; } 
+            else if (p1c !== p2c) { winner = 'player2'; }
 
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player1' ? 'KAMU MENANG!' : 'KAMU KALAH!');
             resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player1' ? './images/win.png' : './images/lose.png');
-            resultChoicesDisplay.innerHTML = `
-                <img src="./images/${p1c}.png" alt="${p1c}">
-                <span class="font-title text-2xl text-gray-400">vs</span>
-                <img src="./images/${p2c}.png" alt="${p2c}">
-            `;
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.png" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.png" alt="${p2c}">`;
             resultPopup.classList.remove('hidden');
+        }
+        
+        function showSummaryPopup(game) {
+            const me = game.player1;
+            const opponent = game.player2;
+            summaryDetails.innerHTML = `
+                <div class="border-t border-b py-2">
+                    <h3 class="font-semibold text-lg text-gray-700">Skor Kamu</h3>
+                    <p class="text-gray-500">Menang: ${me.results.wins}, Kalah: ${me.results.losses}, Seri: ${me.results.draws}</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-gray-700">Skor Lawan</h3>
+                    <p class="text-gray-500">Menang: ${opponent.results.wins}, Kalah: ${opponent.results.losses}, Seri: ${opponent.results.draws}</p>
+                </div>`;
+            summaryModal.classList.remove('hidden');
         }
 
         async function determineWinner(gameId, game) {
-            const p1c = game.player1.choice;
-            const p2c = game.player2.choice;
+            const p1c = game.player1.choice; const p2c = game.player2.choice;
             let winner = 'draw';
-            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
-                winner = 'player1';
-            } else if (p1c !== p2c) {
-                winner = 'player2';
-            }
+            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) { winner = 'player1'; } 
+            else if (p1c !== p2c) { winner = 'player2'; }
 
             const updates = { gameState: 'finished' };
-            if (winner === 'player1') {
-                updates['player1.score'] = game.player1.score + 1;
-            } else if (winner === 'player2') {
-                updates['player2.score'] = game.player2.score + 1;
-            }
+            if (winner === 'player1') { updates['player1.results.wins'] = increment(1); updates['player2.results.losses'] = increment(1); } 
+            else if (winner === 'player2') { updates['player1.results.losses'] = increment(1); updates['player2.results.wins'] = increment(1); } 
+            else { updates['player1.results.draws'] = increment(1); updates['player2.results.draws'] = increment(1); }
             await updateDoc(doc(db, 'games', gameId), updates);
         }
 
-        async function resetRound() {
+        async function resetRound(gameData) {
+            currentRound++;
+            if (magicSettings && magicSettings.isActive && currentRound >= magicSettings.totalRounds) {
+                showSummaryPopup(gameData);
+                return;
+            }
             if (currentGameId) {
-                currentRound++; // Pindahkan increment ronde ke sini
-                if (magicSettings && magicSettings.isActive && currentRound >= magicSettings.totalRounds) {
-                    showNotification("Permainan selesai sesuai pengaturan.", false);
-                    setTimeout(stopGame, 1000);
-                    return;
-                }
-                await updateDoc(doc(db, 'games', currentGameId), {
-                    'player1.choice': null,
-                    'player2.choice': null,
-                    'gameState': 'waiting'
-                });
+                await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': null, 'player2.choice': null, 'gameState': 'waiting' });
             }
         }
         
         async function stopGame() {
             if (currentGameId) {
                 const gameIdToDelete = currentGameId;
-                if(unsubscribeGameListener) {
-                    unsubscribeGameListener();
-                    unsubscribeGameListener = null;
-                }
+                if(unsubscribeGameListener) { unsubscribeGameListener(); unsubscribeGameListener = null; }
                 currentGameId = null;
-                try {
-                    await deleteDoc(doc(db, "games", gameIdToDelete));
-                } catch (e) { console.error("Gagal menghapus game:", e) }
+                try { await deleteDoc(doc(db, "games", gameIdToDelete)); } catch (e) { console.error("Gagal menghapus game:", e); }
                 showScreen(screens.menu);
             }
         }
-
-        // --- EVENT LISTENERS ---
+        
+        function updateSettingsUI(mode) { targetOutcomesInputs.style.display = mode === 'magician' ? 'grid' : 'none'; }
+        magicModeRadios.forEach(radio => radio.addEventListener('change', (e) => updateSettingsUI(e.target.value)));
+        
         settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-        settingsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const success = await saveMagicSettings();
-            if (success) {
-                settingsModal.classList.add('hidden');
-            }
-        });
+        settingsForm.addEventListener('submit', async (e) => { e.preventDefault(); if (await saveMagicSettings()) { settingsModal.classList.add('hidden'); } });
         
         let lastTapTime = 0;
         gameScreen.addEventListener('touchend', (e) => {
             if (e.target.closest('button')) return;
             const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            if (tapLength < 300 && tapLength > 0) {
-                e.preventDefault(); 
-                activateMagic();
-            }
+            if (currentTime - lastTapTime < 300) { e.preventDefault(); activateMagic(); }
             lastTapTime = currentTime;
         });
-
-        gameScreen.addEventListener('dblclick', (e) => {
-            if (e.target.closest('button')) return;
-            activateMagic();
-        });
+        gameScreen.addEventListener('dblclick', (e) => { if (e.target.closest('button')) return; activateMagic(); });
 
         choiceBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (!currentGameId || btn.classList.contains('disabled')) return;
                 const choice = btn.dataset.choice;
-                choiceBtns.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-
+                updateChoiceHighlight(choice);
                 let finalChoice = choice;
-                if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician') {
-                    finalChoice = 'chosen'; 
-                }
+                if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician') { finalChoice = 'chosen'; }
                 await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': finalChoice });
             });
         });
         
-        closePopupBtn.addEventListener('click', () => {
+        closePopupBtn.addEventListener('click', async () => {
             resultPopup.classList.add('hidden');
-            resetRound();
+            const gameRef = doc(db, 'games', currentGameId);
+            const gameSnap = await getDoc(gameRef);
+            if(gameSnap.exists()) resetRound(gameSnap.data());
         });
+
+        newGameBtn.addEventListener('click', () => { summaryModal.classList.add('hidden'); stopGame(); });
 
         createGameBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            const button = e.currentTarget;
-            button.disabled = true;
+            const button = e.currentTarget; button.disabled = true;
             try {
                 const gameData = {
-                    player1: { uid: auth.currentUser.uid, email: auth.currentUser.email, choice: null, score: 0 },
+                    player1: { uid: auth.currentUser.uid, email: auth.currentUser.email, choice: null, results: { wins: 0, losses: 0, draws: 0 } },
                     player2: null, gameState: 'waiting', createdAt: serverTimestamp()
                 };
                 const gameDocRef = await addDoc(collection(db, "games"), gameData);
-                currentGameId = gameDocRef.id;
-                const currentUrl = window.location.href.split('?')[0].replace(/index\.html$/, '');
-                const joinUrl = `${currentUrl}guest.html?game=${currentGameId}`;
+                const joinUrl = `${window.location.href.split('?')[0].replace(/index\.html$/, '')}guest.html?game=${gameDocRef.id}`;
                 qrCodeContainer.innerHTML = '';
                 new QRCode(qrCodeContainer, { text: joinUrl, width: 192, height: 192 });
-                startGame(currentGameId);
-            } catch (error) {
-                console.error("Error creating game:", error);
-                showNotification("Gagal membuat game, coba lagi.", true);
-                showScreen(screens.menu);
-            } finally {
-                button.disabled = false;
-            }
+                startGame(gameDocRef.id);
+            } catch (error) { console.error("Error creating game:", error); showNotification("Gagal membuat game.", true); showScreen(screens.menu);
+            } finally { button.disabled = false; }
         });
 
         stopGameBtn.addEventListener('click', stopGame);
         backToMenuBtn.addEventListener('click', stopGame);
-
-        logoutBtn.addEventListener('click', () => { 
-            if (unsubscribeGameListener) unsubscribeGameListener();
-            signOut(auth).catch(error => showNotification('Gagal keluar.', true));
-        });
-        
-        showLoginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            registerForm.classList.add('hidden');
-            loginForm.classList.remove('hidden');
-            loginPrompt.classList.add('hidden');
-            registerPrompt.classList.remove('hidden');
-        });
-
-        showRegisterLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-            registerPrompt.classList.add('hidden');
-            loginPrompt.classList.remove('hidden');
-        });
+        logoutBtn.addEventListener('click', () => { if (unsubscribeGameListener) unsubscribeGameListener(); signOut(auth).catch(error => showNotification('Gagal keluar.', true)); });
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); loginPrompt.classList.add('hidden'); registerPrompt.classList.remove('hidden'); });
+        showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); registerPrompt.classList.add('hidden'); loginPrompt.classList.remove('hidden'); });
 
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const licenseCode = document.getElementById('license-code').value.trim();
-            const button = registerForm.querySelector('button');
-            const originalButtonText = 'Daftar';
-            if (!licenseCode) { showNotification('Kode lisensi tidak boleh kosong.', true); return; }
+            const email = document.getElementById('register-email').value; const password = document.getElementById('register-password').value; const licenseCode = document.getElementById('license-code').value.trim();
+            const button = registerForm.querySelector('button'); const originalButtonText = 'Daftar';
+            if (!licenseCode) { showNotification('Kode lisensi kosong.', true); return; }
             button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
             try {
                 const licenseRef = doc(db, 'license_codes', licenseCode);
                 const licenseSnap = await getDoc(licenseRef);
-                if (!licenseSnap.exists() || licenseSnap.data().isUsed) { throw new Error('Kode lisensi tidak valid atau sudah digunakan.'); }
+                if (!licenseSnap.exists() || licenseSnap.data().isUsed) { throw new Error('Kode lisensi tidak valid.'); }
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await updateDoc(licenseRef, { isUsed: true, usedBy: user.uid, usedAt: new Date() });
-                showNotification('Pendaftaran berhasil! Selamat datang.', false);
-            } catch (error) {
-                let errorMessage = 'Terjadi kesalahan saat pendaftaran.';
-                if (error.code === 'auth/email-already-in-use') { errorMessage = 'Email ini sudah terdaftar.'; } 
-                else if (error.code === 'auth/weak-password') { errorMessage = 'Password minimal harus 6 karakter.'; } 
-                else if (error.message) { errorMessage = error.message; }
-                showNotification(errorMessage, true);
+                await updateDoc(licenseRef, { isUsed: true, usedBy: userCredential.user.uid, usedAt: serverTimestamp() });
+                showNotification('Pendaftaran berhasil!', false);
+            } catch (error) { showNotification(error.message || 'Gagal mendaftar.', true);
             } finally { button.disabled = false; button.innerHTML = originalButtonText; }
         });
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const button = loginForm.querySelector('button');
-            const originalButtonText = 'Login';
+            const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
+            const button = loginForm.querySelector('button'); const originalButtonText = 'Login';
             button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
-            try { await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                let errorMessage = 'Email atau password salah.';
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                    errorMessage = 'Kombinasi email dan password salah.';
-                } showNotification(errorMessage, true);
-            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
+            try { await signInWithEmailAndPassword(auth, email, password); } 
+            catch (error) { showNotification('Email atau password salah.', true); } 
+            finally { button.disabled = false; button.innerHTML = originalButtonText; }
         });
 
     </script>
