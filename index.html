@@ -597,18 +597,22 @@
             }
         });
         
-        let tapTimeout;
-        gameScreen.addEventListener('click', (e) => {
+        // Deteksi double tap yang lebih andal untuk mobile dan desktop
+        let lastTap = 0;
+        gameScreen.addEventListener('touchend', (e) => {
             if (e.target.closest('button')) return;
-            if (!tapTimeout) {
-                tapTimeout = setTimeout(() => {
-                    tapTimeout = null;
-                }, 300);
-            } else {
-                clearTimeout(tapTimeout);
-                tapTimeout = null;
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                e.preventDefault(); // Mencegah zoom bawaan browser
                 activateMagic();
             }
+            lastTap = currentTime;
+        });
+
+        gameScreen.addEventListener('dblclick', (e) => {
+            if (e.target.closest('button')) return;
+            activateMagic();
         });
 
         choiceBtns.forEach(btn => {
