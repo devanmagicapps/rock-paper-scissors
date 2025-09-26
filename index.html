@@ -474,7 +474,6 @@
                 if (!opponent) {
                     showScreen(screens.waiting);
                     return;
-
                 }
                 
                 if(screens.game.classList.contains('hidden')) showScreen(screens.game);
@@ -496,7 +495,7 @@
                 if (game.gameState === 'finished') {
                     showResultPopup(game);
                 } else {
-                    resultPopup.classList.remove('show');
+                    resultPopup.classList.add('hidden');
                 }
 
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
@@ -530,7 +529,7 @@
                 <span class="font-title text-2xl text-gray-400">vs</span>
                 <img src="./images/${p2c}.png" alt="${p2c}">
             `;
-            resultPopup.classList.add('show');
+            resultPopup.classList.remove('hidden');
         }
 
         async function determineWinner(gameId, game) {
@@ -618,7 +617,7 @@
         });
         
         closePopupBtn.addEventListener('click', () => {
-            resultPopup.classList.remove('show');
+            resultPopup.classList.add('hidden');
             if (magicSettings && magicSettings.isActive) {
                 currentRound++;
             }
@@ -658,7 +657,46 @@
             signOut(auth).catch(error => showNotification('Gagal keluar.', true));
         });
         
-        // ... (Event listeners untuk form login/register)
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const licenseCode = document.getElementById('license-code').value.trim();
+            const button = registerForm.querySelector('button');
+            const originalButtonText = 'Daftar';
+            if (!licenseCode) { showNotification('Kode lisensi tidak boleh kosong.', true); return; }
+            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
+            try {
+                const licenseRef = doc(db, 'license_codes', licenseCode);
+                const licenseSnap = await getDoc(licenseRef);
+                if (!licenseSnap.exists() || licenseSnap.data().isUsed) { throw new Error('Kode lisensi tidak valid atau sudah digunakan.'); }
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await updateDoc(licenseRef, { isUsed: true, usedBy: user.uid, usedAt: new Date() });
+                showNotification('Pendaftaran berhasil! Selamat datang.', false);
+            } catch (error) {
+                let errorMessage = 'Terjadi kesalahan saat pendaftaran.';
+                if (error.code === 'auth/email-already-in-use') { errorMessage = 'Email ini sudah terdaftar.'; } 
+                else if (error.code === 'auth/weak-password') { errorMessage = 'Password minimal harus 6 karakter.'; } 
+                else if (error.message) { errorMessage = error.message; }
+                showNotification(errorMessage, true);
+            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
+        });
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const button = loginForm.querySelector('button');
+            const originalButtonText = 'Login';
+            button.disabled = true; button.innerHTML = `<div class="btn-loader"></div>`;
+            try { await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                let errorMessage = 'Email atau password salah.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Kombinasi email dan password salah.';
+                } showNotification(errorMessage, true);
+            } finally { button.disabled = false; button.innerHTML = originalButtonText; }
+        });
 
     </script>
 </body>
