@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bergabung - GBK Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Bergabung - Gunting Batu Kertas</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a fun, game-like feel -->
@@ -15,18 +15,19 @@
         body {
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none; -ms-user-select: none; user-select: none;
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
         }
-        .screen {
+        .screen, .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center; padding: 1.5rem;
             transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
             backface-visibility: hidden;
         }
-        .screen.hidden {
+        .screen.hidden, .modal-overlay.hidden {
             opacity: 0; transform: scale(0.95); pointer-events: none;
         }
         .loader {
@@ -35,13 +36,11 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Game Screen Specific Styles */
         #game-screen { justify-content: space-between; background-color: #F7FAFC; }
         .player-area { width: 100%; text-align: center; }
         .choice-btn {
             background-color: white; border-radius: 50%; padding: 1rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 1rem;
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
         }
         .choice-btn:hover { transform: scale(1.1); }
@@ -57,57 +56,47 @@
             font-size: 3rem; color: #A0AEC0; transition: all 0.3s;
         }
         #opponent-choice-display img { width: 50px; height: 50px; }
-        
-        /* Result Popup Styles */
-        #result-popup {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background-color: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s; pointer-events:none; z-index: 50;
-        }
-        #result-popup.show { opacity: 1; pointer-events: all; }
-        .result-card {
+        .modal-card {
             background-color: white; border-radius: 1.5rem; padding: 2rem;
             text-align: center; width: 90%; max-width: 350px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative;
-            transform: scale(0.9);
-            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        
-        #close-popup-btn {
+        .close-btn {
             position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
             background-color: #F1F5F9; border-radius: 50%; color: #64748B;
             font-size: 1.5rem; line-height: 1; transition: background-color 0.2s, transform 0.2s;
         }
-        #close-popup-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
-
+        .close-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
         #result-choices-display {
-            display: flex; justify-content: center; align-items: center;
-            gap: 1rem; margin-top: 1rem;
+            display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;
         }
-        #result-choices-display img {
-            width: 50px; height: 50px;
-            background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%;
+        #result-choices-display img { width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%; }
+        #round-counter {
+            position: absolute; top: 1.25rem; left: 1.25rem;
+            font-size: 0.9rem; font-weight: 600; color: #94a3b8;
+            background-color: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
+            padding: 0.25rem 0.75rem; border-radius: 9999px;
+        }
+        .primary-btn {
+            background: linear-gradient(135deg, #FF7E5F, #FEB47B);
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
         }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-
     <div id="app" class="w-full max-w-sm h-[80vh] sm:h-[700px] bg-white rounded-3xl shadow-2xl overflow-hidden relative">
-        
-        <!-- Layar Loading Awal -->
         <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Menghubungkan ke permainan...</p></div>
-
-        <!-- Layar Arena Permainan (untuk Guest) -->
+        <div id="game-over-screen" class="screen hidden bg-gray-50 text-center"><h1 class="text-3xl text-gray-700">Permainan Selesai</h1><p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p></div>
+        
         <div id="game-screen" class="screen hidden">
+            <div id="round-counter"></div>
             <div class="player-area">
                 <p class="text-gray-500 text-lg">Lawan</p>
                 <p class="font-title text-3xl text-gray-800" id="opponent-score">0</p>
                 <div id="opponent-choice-display" class="font-title mt-2">?</div>
             </div>
-            <!-- Perbaikan: Menambahkan class space-y-4 untuk memberi jarak antar tombol -->
             <div class="flex flex-col items-center space-y-4">
                 <button class="choice-btn" data-choice="rock"><img src="./images/rock.png" alt="Batu"></button>
                 <button class="choice-btn" data-choice="paper"><img src="./images/paper.png" alt="Kertas"></button>
@@ -119,42 +108,26 @@
             </div>
         </div>
         
-        <!-- Elemen Pop-up Hasil -->
-        <div id="result-popup" class="hidden">
-            <div class="result-card">
-                <button id="close-popup-btn">&times;</button>
-                <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
-                <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
-                <div id="result-choices-display"></div>
-            </div>
-        </div>
-
+        <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+        <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="close-summary-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Tutup</button></div></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
-          authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
-          projectId: "rock-paper-scissors-prediction",
-          storageBucket: "rock-paper-scissors-prediction.appspot.com",
-          messagingSenderId: "342279845813",
-          appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg", authDomain: "rock-paper-scissors-prediction.firebaseapp.com", projectId: "rock-paper-scissors-prediction", storageBucket: "rock-paper-scissors-prediction.appspot.com", messagingSenderId: "342279845813", appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let unsubscribeGameListener = null;
         let currentGameId = null;
-        
-        const loadingScreen = document.getElementById('loading-screen');
-        const loadingText = document.getElementById('loading-text');
-        const gameScreen = document.getElementById('game-screen');
+        let magicSettings = null;
+        let currentRound = 0;
+
+        const screens = { loading: document.getElementById('loading-screen'), game: document.getElementById('game-screen'), gameOver: document.getElementById('game-over-screen') };
         const myScoreEl = document.getElementById('my-score');
         const opponentScoreEl = document.getElementById('opponent-score');
         const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
@@ -164,62 +137,68 @@
         const resultImage = document.getElementById('result-image');
         const resultChoicesDisplay = document.getElementById('result-choices-display');
         const closePopupBtn = document.getElementById('close-popup-btn');
+        const roundCounterEl = document.getElementById('round-counter');
+        const summaryModal = document.getElementById('summary-modal');
+        const summaryDetails = document.getElementById('summary-details');
+        const closeSummaryBtn = document.getElementById('close-summary-btn');
 
-        async function joinGame() {
-            try {
+        function showScreen(screen) { Object.values(screens).forEach(s => s.classList.add('hidden')); screen.classList.remove('hidden'); }
+        function updateChoiceHighlight(choice) { choiceBtns.forEach(b => b.classList.remove('selected')); const btn = document.querySelector(`.choice-btn[data-choice="${choice}"]`); if(btn) btn.classList.add('selected'); }
+        
+        onAuthStateChanged(auth, user => {
+            if (user) {
                 const urlParams = new URLSearchParams(window.location.search);
                 currentGameId = urlParams.get('game');
-                if (!currentGameId) {
-                    loadingText.textContent = 'ID Game tidak ditemukan.'; return;
-                }
+                if (!currentGameId) { document.getElementById('loading-text').textContent = "ID Game tidak ditemukan."; return; }
+                joinGame(currentGameId, user.uid);
+            }
+        });
 
-                const userCredential = await signInAnonymously(auth);
-                const user = userCredential.user;
-                
-                const gameRef = doc(db, "games", currentGameId);
-                const gameSnap = await getDoc(gameRef);
-
-                if (!gameSnap.exists() || gameSnap.data().player2) {
-                    loadingText.textContent = 'Game ini tidak tersedia atau sudah penuh.'; return;
-                }
-                
-                await updateDoc(gameRef, {
-                    player2: { uid: user.uid, choice: null, score: 0 }
-                });
-
-                startGame(currentGameId, user.uid);
+        async function joinGame(gameId, uid) {
+            try {
+                await updateDoc(doc(db, "games", gameId), { player2: { uid, choice: null, results: { wins: 0, losses: 0, draws: 0 } } });
+                startGame(gameId);
             } catch (error) {
                 console.error("Gagal bergabung ke game:", error);
-                loadingText.textContent = 'Gagal terhubung. Coba lagi.';
+                document.getElementById('loading-text').textContent = "Gagal bergabung. Mungkin game sudah tidak ada.";
             }
         }
+        
+        if (!auth.currentUser) {
+            signInAnonymously(auth).catch(error => {
+                console.error("Gagal login anonim:", error);
+                document.getElementById('loading-text').textContent = "Gagal terhubung ke server.";
+            });
+        }
 
-        function startGame(gameId, myUid) {
-            if(unsubscribeGameListener) unsubscribeGameListener();
+        function startGame(gameId) {
+            if (unsubscribeGameListener) unsubscribeGameListener();
             const gameDocRef = doc(db, "games", gameId);
 
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
                 if (!docSnap.exists()) {
-                    loadingText.textContent = 'Permainan telah berakhir. Silakan tutup halaman ini.';
-                    gameScreen.classList.add('hidden');
-                    loadingScreen.classList.remove('hidden');
+                    if (unsubscribeGameListener) { unsubscribeGameListener(); unsubscribeGameListener = null; }
+                    showScreen(screens.gameOver);
                     return;
                 }
 
                 const game = docSnap.data();
-                
-                loadingScreen.classList.add('hidden');
-                gameScreen.classList.remove('hidden');
-
                 const me = game.player2;
                 const opponent = game.player1;
 
-                myScoreEl.textContent = me.score;
-                opponentScoreEl.textContent = opponent.score;
+                if (!me || !opponent) { return; }
+                if (screens.game.classList.contains('hidden')) showScreen(screens.game);
                 
-                if(me.choice && opponent.choice) {
-                     opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.png" alt="${opponent.choice}">`;
-                } else if(opponent.choice) {
+                myScoreEl.textContent = me.results?.wins ?? 0;
+                opponentScoreEl.textContent = opponent.results?.wins ?? 0;
+
+                if(game.magicSettings && game.magicSettings.isActive) {
+                    roundCounterEl.textContent = `Ronde: ${game.currentRound + 1} / ${game.magicSettings.totalRounds}`;
+                } else {
+                    roundCounterEl.textContent = '';
+                }
+
+                if (opponent.choice) {
                     opponentChoiceDisplay.textContent = '✓';
                     opponentChoiceDisplay.classList.add("bg-green-200", "text-green-600");
                 } else {
@@ -230,63 +209,62 @@
                 if (game.gameState === 'finished') {
                     showResultPopup(game);
                 } else {
-                    resultPopup.classList.remove('show');
+                    resultPopup.classList.add('hidden');
                 }
                 
+                if (game.magicSettings?.isActive && game.currentRound >= game.magicSettings.totalRounds - 1 && game.gameState === 'finished') {
+                    showSummaryPopup(game);
+                }
+
                 choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice || game.gameState === 'finished'));
             });
         }
-
+        
         function showResultPopup(game) {
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
             let winner = 'draw';
-            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
-                winner = 'player1';
-            } else if (p1c !== p2c) {
-                winner = 'player2';
-            }
+            if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) { winner = 'player1'; } 
+            else if (p1c !== p2c) { winner = 'player2'; }
 
-            let resultImgSrc = '';
-            let resultStatusText = '';
-            if (winner === 'draw') {
-                resultImgSrc = './images/draw.png';
-                resultStatusText = 'SERI!';
-            } else if (winner === 'player2') {
-                resultImgSrc = './images/win.png';
-                resultStatusText = 'KAMU MENANG!';
-            } else {
-                resultImgSrc = './images/lose.png';
-                resultStatusText = 'KAMU KALAH!';
-            }
-
-            resultText.textContent = resultStatusText;
-            resultImage.src = resultImgSrc;
-
-            resultChoicesDisplay.innerHTML = `
-                <img src="./images/${p2c}.png" alt="${p2c}">
-                <span class="font-title text-2xl text-gray-400">vs</span>
-                <img src="./images/${p1c}.png" alt="${p1c}">
-            `;
-            
-            resultPopup.classList.add('show');
+            resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player2' ? 'KAMU MENANG!' : 'KAMU KALAH!');
+            resultImage.src = (winner === 'draw') ? './images/draw.png' : (winner === 'player2' ? './images/win.png' : './images/lose.png');
+            resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.png" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.png" alt="${p1c}">`;
+            resultPopup.classList.remove('hidden');
         }
 
-        closePopupBtn.addEventListener('click', () => {
-            resultPopup.classList.remove('show');
-        });
+        function showSummaryPopup(game) {
+            const me = game.player2;
+            const opponent = game.player1;
+            const myResults = me.results || { wins: 0, losses: 0, draws: 0 };
+            const opponentResults = opponent.results || { wins: 0, losses: 0, draws: 0 };
+            summaryDetails.innerHTML = `
+                <div class="border-t border-b py-2">
+                    <h3 class="font-semibold text-lg text-gray-700">Skor Kamu</h3>
+                    <p class="text-gray-500">Menang: ${myResults.wins}, Kalah: ${myResults.losses}, Seri: ${myResults.draws}</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-gray-700">Skor Lawan</h3>
+                    <p class="text-gray-500">Menang: ${opponentResults.wins}, Kalah: ${opponentResults.losses}, Seri: ${opponentResults.draws}</p>
+                </div>`;
+            summaryModal.classList.remove('hidden');
+        }
 
         choiceBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (!currentGameId || btn.classList.contains('disabled')) return;
                 const choice = btn.dataset.choice;
-                choiceBtns.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
+                updateChoiceHighlight(choice);
                 await updateDoc(doc(db, 'games', currentGameId), { 'player2.choice': choice });
             });
         });
-
-        joinGame();
+        
+        closePopupBtn.addEventListener('click', () => {
+            resultPopup.classList.add('hidden');
+        });
+        closeSummaryBtn.addEventListener('click', () => {
+            summaryModal.classList.add('hidden');
+        });
 
     </script>
 </body>
