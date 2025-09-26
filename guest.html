@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bergabung ke Permainan...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF7E5F;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="text-center">
+        <div class="loader mx-auto"></div>
+        <p id="status-text" class="mt-4 text-gray-600 text-lg">Menghubungkan ke permainan...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
+          authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
+          projectId: "rock-paper-scissors-prediction",
+          storageBucket: "rock-paper-scissors-prediction.appspot.com",
+          messagingSenderId: "342279845813",
+          appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const statusText = document.getElementById('status-text');
+
+        async function joinGame() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const gameId = urlParams.get('game');
+
+                if (!gameId) {
+                    statusText.textContent = "Error: ID Game tidak ditemukan.";
+                    return;
+                }
+
+                // 1. Login sebagai guest (anonim)
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
+
+                // 2. Cek status game
+                statusText.textContent = "Memeriksa ruang permainan...";
+                const gameDocRef = doc(db, 'games', gameId);
+                const gameDoc = await getDoc(gameDocRef);
+
+                if (!gameDoc.exists()) {
+                    statusText.textContent = "Game tidak ditemukan. Mungkin sudah selesai.";
+                    return;
+                }
+                if (gameDoc.data().player2) {
+                    statusText.textContent = "Ruang permainan ini sudah penuh.";
+                    return;
+                }
+
+                // 3. Bergabung ke game
+                statusText.textContent = "Berhasil terhubung! Masuk ke permainan...";
+                await updateDoc(gameDocRef, {
+                    player2: {
+                        uid: user.uid,
+                        choice: null,
+                        score: 0,
+                        isAnonymous: true
+                    }
+                });
+
+                // 4. Arahkan ke halaman game utama
+                window.location.href = './index.html';
+
+            } catch (error) {
+                console.error("Gagal bergabung sebagai guest:", error);
+                statusText.textContent = "Terjadi kesalahan saat mencoba bergabung.";
+            }
+        }
+
+        joinGame();
+
+    </script>
+</body>
+</html>
