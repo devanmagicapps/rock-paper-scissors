@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Panduan Pengguna: RPS Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f1f5f9; /* Sama seperti referensi */
+        }
+        h1, h2, h3, .font-title {
+            font-family: 'Fredoka One', cursive;
+        }
+        .gradient-text {
+            /* Warna gradasi dari primary-btn pada referensi */
+            background: linear-gradient(90deg, #FF7E5F, #FEB47B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        .section-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+        .primary-btn-like {
+            background: linear-gradient(135deg, #FF7E5F, #FEB47B);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            color: white;
+            font-weight: 700;
+        }
+        .primary-btn-like:hover {
+            opacity: 0.9;
+            box-shadow: 0 6px 20px rgba(254, 180, 123, 0.6);
+        }
+        .step-number {
+            font-family: 'Fredoka One', cursive;
+            background-color: #FF7E5F;
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+        .magic-tip {
+            background-color: #FFFBEB; /* Yellow-50 */
+            border-left: 5px solid #FBBF24; /* Amber-500 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div id="app-container" class="max-w-xl mx-auto space-y-8">
+        <!-- HEADER UTAMA -->
+        <header class="text-center">
+            <h1 class="text-5xl sm:text-6xl font-title mb-2 gradient-text">RPS PREDICTION</h1>
+            <p class="text-lg text-gray-700 font-semibold">Panduan Pengguna</p>
+            <p class="mt-2 text-gray-500 text-sm italic">Dari Devan Magic x Heri Sanjaya</p>
+        </header>
+
+        <!-- Loading / Login Content -->
+        <div id="auth-status" class="text-center p-6 rounded-xl bg-indigo-100 border border-indigo-300 shadow-md">
+            <p class="text-indigo-700 font-semibold">Memuat status autentikasi...</p>
+        </div>
+
+        <!-- LOGIN CARD -->
+        <div id="login-card" class="section-card hidden">
+            <h2 class="text-2xl font-title text-gray-800 mb-6 text-center">Akses Panduan</h2>
+            <p class="text-gray-600 mb-6 text-center">Masukkan email dan kode lisensi Anda untuk melanjutkan.</p>
+
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" placeholder="Masukkan email terdaftar Anda">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Kode Lisensi / Password</label>
+                    <input type="password" id="password" name="password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" placeholder="Kode lisensi unik Anda">
+                </div>
+                
+                <div id="error-message" class="text-red-600 text-sm p-3 bg-red-100 rounded-lg hidden"></div>
+
+                <button type="submit" id="login-button" class="w-full text-center primary-btn-like mt-6 py-3 justify-center text-lg">
+                    Masuk dan Baca Panduan
+                </button>
+            </form>
+        </div>
+
+        <!-- GUIDE CONTENT (Hanya terlihat setelah login) -->
+        <div id="guide-content" class="hidden space-y-8">
+            
+            <button id="logout-button" class="w-full text-center py-2 px-4 rounded-xl text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-150 ease-in-out">
+                Keluar (Logout)
+            </button>
+            
+            <!-- NEW WELCOME MESSAGE -->
+            <div class="text-center p-4 rounded-xl bg-orange-100 border border-orange-300 shadow-md">
+                <strong class="text-gray-800 text-base sm:text-lg block">
+                    Terima kasih telah membeli efek ini dari Devan Magic!
+                </strong>
+                <p class="text-gray-600 text-sm mt-1">
+                    Web ini dirancang untuk para mentalist modern untuk menciptakan efek prediksi yang terasa 100% free choice!
+                </p>
+            </div>
+
+            <!-- KONSEP DASAR -->
+            <div class="section-card">
+                <h2 class="text-2xl font-title text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="text-3xl">💡</span> Konsep Dasar Aplikasi
+                </h2>
+                <p class="text-gray-600 mb-6">Aplikasi ini dirancang sebagai <strong>tools untuk mentalism</strong> yang beroperasi dengan dua peran yang terpisah namun terhubung:</p>
+
+                <div class="space-y-4">
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <h3 class="font-bold text-gray-700 flex items-center gap-2"><span class="text-2xl">🎩</span> Pesulap</h3>
+                        <p class="text-sm text-gray-500">Anda bisa mengontrol hasil akhir permainan dari opsi <strong>Pengaturan</strong> pada halaman utama. Cukup ubah beberapa value di dalamnya sesuai keinginan Anda, web akan melakukan semua pekerjaan berat untuk Anda.</p>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-200">
+                        <h3 class="font-bold text-gray-700 flex items-center gap-2"><span class="text-2xl">👥</span> Audiens</h3>
+                        <p class="text-sm text-gray-500">Audiens diwajibkan untuk bermain melalui <strong>QR Code</strong> ke halaman permainan standar di mana audiens akan merasa kalau ini adalah permainan yang adil dan normal.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILOSOFI & EFEK -->
+            <div class="section-card">
+                <h2 class="text-2xl font-title text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="text-3xl">🔮</span> Main Effect
+                </h2>
+                <p class="text-gray-700 font-semibold italic mb-4">Tujuan Anda: Meyakinkan audiens bahwa Anda dapat <strong>memprediksi</strong> atau <strong>memengaruhi</strong> pilihan mereka secara psikologis.</p>
+                <div class="mt-6 p-4 border-2 border-dashed border-orange-300 rounded-xl">
+                    <h3 class="font-bold text-orange-600 mb-2">Efek Akhir yang Dilihat Audiens:</h3>
+                    <p class="text-gray-600">Setelah beberapa ronde Gunting Batu Kertas, total skor (Menang, Kalah, Seri) Anda sama <strong>persis</strong> dengan yang sudah Anda tulis di dalam amplop prediksi yang tertutup di atas meja sejak awal.</p>
+                </div>
+            </div>
+
+            <!-- LANGKAH 1: PERSIAPAN (30 Detik) -->
+            <div class="section-card">
+                <h2 class="text-2xl font-title text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="step-number">1</span> Persiapan
+                </h2>
+
+                <ol class="space-y-6 text-gray-600 list-none p-0">
+                    <li class="flex gap-4">
+                        <div class="text-2xl flex-shrink-0">📝</div>
+                        <div>
+                            <strong class="text-gray-800">Siapkan Prediksi Fisik Anda:</strong>
+                            <p>Tulis hasil akhir yang Anda inginkan (misal: Menang 2, Kalah 2, Seri 1) di atas kertas, masukkan ke amplop, dan segel. Letakkan di tempat yang jelas.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <div class="text-2xl flex-shrink-0">⚙️</div>
+                        <div>
+                            <strong class="text-gray-800">Atur Aplikasi (Pengaturan):</strong>
+                            <p>Buka Pengaturan di menu utama dan <strong>SAMAKAN</strong> angka-angka di setting dengan prediksi di amplop Anda.</p>
+                            <p class="font-semibold text-orange-500 mt-2">Contoh Prediksi: Saya merasa dalam permainan kali ini saya akan MENANG sebanyak 2 kali, kalah 2 kali, dan seri 1 kali</p>
+                            <span class="font-mono text-sm inline-block p-1 bg-green-100 rounded mt-2">Total Ronde: 5 | Menang: 2 | Kalah: 2 | Seri: 1</span>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <div class="text-2xl flex-shrink-0">🚀</div>
+                        <div>
+                            <strong class="text-gray-800">Pilih Mode Permainan:</strong>
+                            <p>Tentukan Anda akan menggunakan <strong>Magician Mode (Otomatis)</strong> atau <strong>Peek Mode (Manual)</strong> (Lihat detail di bawah). Klik <strong>Simpan Pengaturan</strong>.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- LANGKAH 2: ALUR PERTUNJUKAN -->
+            <div class="section-card">
+                <h2 class="text-2xl font-title text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="step-number">2</span> Alur Pertunjukan
+                </h2>
+
+                <div class="space-y-8 text-gray-600">
+                    
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 mb-2"><span class="primary-btn-like">Mulai</span> Demo Mode</h3>
+                        <ul class="list-disc ml-5 space-y-1 text-sm">
+                            <li>Klik "Buat Game Baru" dan minta audiens memindai QR Code.</li>
+                            <li>Mainkan <strong>satu ronde</strong> dalam <strong>Mode Normal</strong> (tanpa mengaktifkan Mode Sulap). Biarkan hasilnya acak.</li>
+                            <li>Tujuan: Menunjukkan bahwa game berjalan adil dan normal. Setelah hasil muncul, <strong>Tutup Pop-up</strong> untuk melanjutkan.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 mb-2"><span class="primary-btn-like">Aktivasi</span> Mode Sulap</h3>
+                        <div class="magic-tip">
+                            <strong class="text-red-600 block mb-2">Momen Kunci: The Double Tap!</strong>
+                            <p>Beri justifikasi dengan kalimat: <strong>“Baik, itu pemanasan. Sekarang kita mulai dari skor 0-0.”</strong></p>
+                            <p class="font-bold text-red-600 mt-3">Lalu, Lakukan DOUBLE TAP secara CEPAT di area kosong mana pun pada layar game Anda.</p>
+                            <p class="text-sm mt-1">Anda bisa bersikap santai, karena aksi ini sudah dijustifikasi. Audiens akan menganggap Anda sekadar mereset permainan. Notifikasi <strong>"Mode Performance Aktif!"</strong> akan muncul sebentar. Skor akan direset, dan kendali sulap aktif!</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 mb-2"><span class="primary-btn-like">Eksekusi</span> Inti Trik</h3>
+                        <p>Mainkan permainan sesuai <strong>Total Ronde</strong> yang Anda atur. Fokus pada patter (cerita) Anda. Buat audiens percaya bahwa kata-kata dan bahasa tubuh Andalah yang memengaruhi pilihan mereka. Setiap ronde selesai, <strong>Tutup Pop-up</strong> untuk melanjutkan.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 mb-2"><span class="primary-btn-like">Puncak</span> The Reveal</h3>
+                        <p>Setelah ronde terakhir selesai, <strong>Modal Rangkuman Akhir</strong> akan muncul. Tunjukkan total skor di layar Anda kepada audiens. Lalu, buka amplop prediksi Anda. <strong class="text-orange-500">Hasilnya akan cocok 100%!</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MODE PERMAINAN RAHASIA -->
+            <div class="section-card">
+                <h2 class="text-2xl font-title text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="text-3xl">🤫</span> Mode Permainan Rahasia
+                </h2>
+                <p class="text-gray-600 mb-6">Pilih mode yang paling sesuai dengan gaya pertunjukan Anda. Ini adalah cara sistem memastikan Anda mencapai target prediksi.</p>
+
+                <div class="space-y-6">
+                    <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                        <h3 class="font-bold text-purple-700 text-xl mb-1 flex items-center gap-2">1. Magician Mode (Otomatis)</h3>
+                        <p class="text-sm italic mb-3">Mode <strong>Autopilot</strong> - Fokus 100% pada presentasi.</p>
+                        <p class="text-gray-600">Setelah audiens memilih, Anda bebas memilih opsi apa saja (Gunting, Batu, atau Kertas), atau bahkan cukup pilih `chosen` jika Anda ingin cepat. Saat hitungan mundur berakhir, sistem akan <strong>secara otomatis mengubah</strong> pilihan Anda di detik terakhir untuk memastikan hasilnya sesuai dengan rencana Anda (Menang/Kalah/Seri) untuk ronde tersebut.</p>
+                    </div>
+
+                    <div class="p-4 bg-sky-50 rounded-xl border border-sky-200">
+                        <h3 class="font-bold text-sky-700 text-xl mb-1 flex items-center gap-2">2. Peek Mode (Manual)</h3>
+                        <p class="text-sm italic mb-3">Mode <strong>Kontrol Penuh</strong> - Untuk improvisasi.</p>
+                        <p class="text-gray-600">Begitu audiens memilih, <strong>Status Bar</strong> di bagian bawah layar Anda akan langsung menunjukkan pilihan mereka (Misal: Lawan memilih: <strong>Batu</strong>). Dengan informasi ini, Anda bisa menentukan pilihan Anda sendiri untuk mendapatkan hasil yang Anda butuhkan (Menang/Kalah/Seri).</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PENUTUP -->
+            <footer class="text-center mt-8 pt-4 border-t border-gray-300">
+                <p class="text-sm text-gray-500">Sekali lagi, terimakasih sudah membeli <strong> RPS Prediction </strong> dari <a href="https://devanapps.vercel.app/" target="_blank" class="text-orange-600 hover:text-orange-700 font-semibold underline">Devan Magic Apps</a> x Heri Sanjaya!</p>
+                <p class="text-xs text-gray-400 mt-2">Dibuat untuk Performa Maksimal di perangkat seluler.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        // Atur tingkat log Firebase ke Debug untuk melihat pesan di konsol
+        setLogLevel('Debug');
+
+        // Kredensial Firebase yang disediakan
+        const firebaseConfig = {
+            apiKey: "AIzaSyAm9YiApr6CKGxZx0bCt0en_3Mu3aG93Jg",
+            authDomain: "rock-paper-scissors-prediction.firebaseapp.com",
+            databaseURL: "https://rock-paper-scissors-prediction-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rock-paper-scissors-prediction",
+            storageBucket: "rock-paper-scissors-prediction.firebasestorage.app",
+            messagingSenderId: "342279845813",
+            appId: "1:342279845813:web:d11c73a0e4bab96fed8bfc"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        // getFirestore(app); // Firestore tidak diperlukan untuk otentikasi sederhana ini
+
+        // Dapatkan elemen DOM
+        const loginCard = document.getElementById('login-card');
+        const guideContent = document.getElementById('guide-content');
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const logoutButton = document.getElementById('logout-button');
+        const authStatus = document.getElementById('auth-status');
+        const loginButton = document.getElementById('login-button');
+
+        // Fungsi untuk menangani login
+        const handleLogin = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            errorMessage.classList.add('hidden');
+            loginButton.textContent = 'Memproses...';
+            loginButton.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // AuthStateChanged akan menangani pembaruan UI
+            } catch (error) {
+                console.error("Login Error:", error.code, error.message);
+                
+                // Pesan kesalahan kustom sesuai permintaan, dengan hyperlink
+                const customError = 'Pastikan anda membeli efek ini dari <a href="https://devanapps.vercel.app/" target="_blank" class="font-bold underline">DEVAN MAGIC APPS</a> terlebih dahulu untuk mendapat kode lisensi';
+                
+                errorMessage.innerHTML = customError;
+                errorMessage.classList.remove('hidden');
+
+                loginButton.textContent = 'Masuk dan Baca Panduan';
+                loginButton.disabled = false;
+            }
+        };
+
+        // Fungsi untuk menangani logout
+        const handleLogout = async () => {
+            try {
+                await signOut(auth);
+                // AuthStateChanged akan menangani pembaruan UI
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        };
+
+        // Listener untuk perubahan status autentikasi
+        onAuthStateChanged(auth, (user) => {
+            authStatus.classList.add('hidden'); // Sembunyikan status loading
+            if (user) {
+                // Pengguna berhasil masuk
+                loginCard.classList.add('hidden');
+                guideContent.classList.remove('hidden');
+                loginButton.textContent = 'Masuk dan Baca Panduan';
+                loginButton.disabled = false;
+                errorMessage.classList.add('hidden');
+
+            } else {
+                // Pengguna keluar atau belum masuk
+                guideContent.classList.add('hidden');
+                loginCard.classList.remove('hidden');
+                
+            }
+        });
+
+        // Tambahkan event listener setelah semua elemen dimuat
+        window.onload = () => {
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        };
+    </script>
+</body>
+</html>
