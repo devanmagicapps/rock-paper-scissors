@@ -10,12 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
-        /* Menggunakan font kustom */
         body {
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none; -ms-user-select: none; user-select: none;
-            background-color: #f1f5f9; /* bg-slate-100 */
+            background-color: #f1f5f9;
         }
         h1, h2, button, .font-title {
             font-family: 'Fredoka One', cursive;
@@ -23,7 +22,7 @@
         .screen, .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 2.5rem 2rem;
+            justify-content: center; align-items: center;
             transition: opacity 0.4s ease-in-out;
             backface-visibility: hidden;
         }
@@ -48,16 +47,10 @@
             opacity: 0.7; cursor: not-allowed; transform: translateY(0);
             box-shadow: 0 4px 15px rgba(254, 180, 123, 0.2);
         }
-        .toggle-link { color: #FF7E5F; transition: color 0.2s; }
-        .toggle-link:hover { color: #e56241; }
         .loader, .btn-loader {
             border: 4px solid #f3f3f3; border-top: 4px solid #FF7E5F;
             border-radius: 50%; width: 40px; height: 40px;
             animation: spin 1s linear infinite;
-        }
-        .btn-loader {
-            width: 20px; height: 20px; border-width: 3px;
-            border-top-color: white; border-left-color: white; border-bottom-color: white;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #notification {
@@ -67,52 +60,69 @@
             transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); z-index: 100;
         }
         #notification.show { bottom: 20px; }
-        #qrcode-container { border: 4px solid #f3f3f3; }
         
-        #game-screen { 
-            justify-content: center;
-            background-color: #F7FAFC; 
+        /* Tata Letak Game Baru */
+        #game-screen {
+            background-color: #F7FAFC;
             padding: 0;
         }
-        .player-area { width: 100%; text-align: center; }
-
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            font-size: 2.25rem;
+            color: #2d3748;
+        }
+        .center-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+        }
+        #status-container {
+            background-color: white;
+            color: #4a5568;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        #status-container.ready {
+            background-color: #C6F6D5;
+            color: #2F855A;
+        }
+        #status-container.peek {
+            background-color: #BEE3F8; /* blue-200 */
+            color: #2C5282; /* blue-800 */
+            font-family: 'Fredoka One', cursive;
+        }
+        
         .choice-btn {
-            background-color: white; border-radius: 50%; 
-            padding: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
-            margin-bottom: 0;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+            background-color: white; border-radius: 50%; padding: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .choice-btn:hover { transform: scale(1.1); }
-        .choice-btn img { 
-            width: 48px; 
-            height: 48px; 
-        }
-        .choice-btn.selected {
-            box-shadow: 0 0 0 4px #FF7E5F, 0 6px 20px rgba(255, 126, 95, 0.5);
-            transform: scale(1.1);
-        }
+        .choice-btn:active { transform: scale(1.05); }
+        .choice-btn img { width: 60px; height: 60px; }
         .choice-btn.disabled { opacity: 0.5; pointer-events: none; }
-
-        #opponent-choice-display {
-            width: 100px; height: 100px;
-            margin: 0 auto;
-            border: 4px dashed #E2E8F0;
-            background-color: transparent;
-            color: #CBD5E0;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 3rem; transition: all 0.3s;
-        }
-        #opponent-choice-display.chosen {
-            border-style: solid;
-            border-color: #68D391;
-            color: #68D391;
-        }
-        #opponent-choice-display img { 
-            width: 60px; 
-            height: 60px;
-        }
-
+        
+        /* Modal & Pop-up styling */
         .modal-card {
             background-color: white; border-radius: 1.5rem; padding: 2rem;
             text-align: center; width: 90%; max-width: 350px;
@@ -120,35 +130,23 @@
             transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .close-btn {
-            position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
-            background-color: #F1F5F9; border-radius: 50%; color: #64748B;
-            font-size: 1.5rem; line-height: 1; transition: background-color 0.2s, transform 0.2s;
+        #result-round-info {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 1rem;
         }
-        .close-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
         #result-choices-display {
             display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;
         }
         #result-choices-display img { width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%; }
-        
-        #round-counter {
-            position: absolute; top: 1rem; left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.9rem; font-weight: 600; color: #94a3b8;
-            background-color: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
-            padding: 0.35rem 1rem; border-radius: 9999px;
-        }
-        .vs-text {
-            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        @keyframes sparkle-in-circle { 
-            0%, 100% { opacity: 0; transform: scale(0.5); } 
-            50% { opacity: 1; transform: scale(1.2); } 
-        }
     </style>
 </head>
 <body>
-
     <div id="loading-screen" class="screen"><div class="loader"></div><p id="loading-text" class="mt-4 text-gray-500">Memuat...</p></div>
 
     <div id="auth-screen" class="screen hidden">
@@ -175,7 +173,7 @@
     </div>
     
     <div id="menu-screen" class="screen hidden bg-gray-50">
-        <div class="w-full max-w-sm text-center">
+       <div class="w-full max-w-sm text-center">
             <h2 class="text-4xl text-gray-800 mb-6">Menu Utama</h2>
             <p class="text-gray-600 mb-10">Selamat datang, <br><span id="user-email" class="font-semibold"></span>!</p>
             <button id="create-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mb-4">Buat Game Baru</button>
@@ -196,39 +194,35 @@
     </div>
     
     <div id="game-screen" class="screen hidden">
-        <div class="w-full max-w-sm h-full flex flex-col justify-between relative p-4">
-            <div id="round-counter"></div>
-            <button id="stop-game-btn" class="hidden absolute top-4 right-4 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
-
-            <div class="player-area text-center">
-                <div id="opponent-choice-display" class="font-title mb-4 text-4xl">?</div>
-                <div>
-                    <p class="text-gray-500 text-lg">Lawan</p>
-                    <p class="font-title text-4xl text-gray-800" id="opponent-score">0</p>
-                </div>
-            </div>
-
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <p class="vs-text font-title text-5xl text-gray-300">VS</p>
-            </div>
-            
-            <div class="player-area text-center">
-                <div>
-                    <p class="font-title text-4xl text-gray-800" id="my-score">0</p>
-                    <p class="text-gray-500 text-lg">Kamu</p>
-                </div>
-                <div id="choice-container" class="flex justify-center items-center gap-4 mt-4">
-                    <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
-                    <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
-                    <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
-                </div>
+        <button id="stop-game-btn" class="hidden absolute top-5 right-5 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
+        <div class="top-bar font-title">
+            <p id="my-score">0</p>
+            <p class="text-2xl text-gray-400">VS</p>
+            <p id="opponent-score">0</p>
+        </div>
+        <div class="center-stage">
+            <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
+            <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
+            <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+        </div>
+        <div class="bottom-bar">
+            <div id="status-container">
+                <p id="status-text">Menunggu Lawan...</p>
             </div>
         </div>
     </div>
     
-    <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+    <div id="result-popup" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div id="result-round-info"></div>
+            <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
+            <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
+            <div id="result-choices-display"></div>
+        </div>
+    </div>
+    
     <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="new-game-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Mulai Permainan Baru</button></div></div>
-    <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="close-btn">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
+    <div id="settings-modal" class="modal-overlay hidden bg-black bg-opacity-50 z-50"><div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm m-4 relative"><button id="close-settings-btn" class="absolute top-2.5 right-2.5 w-9 h-9 bg-gray-100 rounded-full text-gray-500 text-2xl leading-none transition hover:bg-gray-200 hover:rotate-90">&times;</button><h2 class="text-2xl text-gray-800 mb-6 text-center">Pengaturan Sulap</h2><form id="settings-form" class="space-y-4"><div><label class="font-semibold text-gray-600">Total Ronde</label><input id="total-rounds-input" type="number" min="1" value="5" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div id="target-outcomes-inputs" class="grid grid-cols-3 gap-2"><div><label class="font-semibold text-gray-600">Menang</label><input id="wins-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Kalah</label><input id="losses-input" type="number" min="0" value="2" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div><div><label class="font-semibold text-gray-600">Seri</label><input id="draws-input" type="number" min="0" value="1" class="w-full p-2 mt-1 border-2 rounded-lg settings-input"></div></div><div><label class="font-semibold text-gray-600">Mode Permainan</label><div class="mt-2 space-y-2"><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="peek" class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Peek Mode (Intip Pilihan Lawan)</span></label><label class="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-gray-200 has-[:checked]:border-orange-400"><input type="radio" name="magic-mode" value="magician" checked class="h-4 w-4 text-orange-500 focus:ring-orange-400"><span class="ml-3 text-gray-700">Magician Mode (Otomatis)</span></label></div></div><button type="submit" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider !mt-6">Simpan Pengaturan</button></form></div></div>
 
     <div id="notification"></div>
 
@@ -264,19 +258,19 @@
         const stopGameBtn = document.getElementById('stop-game-btn');
         const myScoreEl = document.getElementById('my-score');
         const opponentScoreEl = document.getElementById('opponent-score');
-        const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
         const choiceBtns = document.querySelectorAll('.choice-btn');
+        const statusContainer = document.getElementById('status-container');
+        const statusText = document.getElementById('status-text');
         const resultPopup = document.getElementById('result-popup');
         const resultText = document.getElementById('result-text');
         const resultImage = document.getElementById('result-image');
         const resultChoicesDisplay = document.getElementById('result-choices-display');
-        const closePopupBtn = document.getElementById('close-popup-btn');
+        const resultRoundInfo = document.getElementById('result-round-info');
         const settingsBtn = document.getElementById('settings-btn');
         const settingsModal = document.getElementById('settings-modal');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
         const settingsForm = document.getElementById('settings-form');
         const gameScreen = document.getElementById('game-screen');
-        const roundCounterEl = document.getElementById('round-counter');
         const summaryModal = document.getElementById('summary-modal');
         const summaryDetails = document.getElementById('summary-details');
         const newGameBtn = document.getElementById('new-game-btn');
@@ -340,12 +334,9 @@
                 });
             }
 
-            const originalContent = opponentChoiceDisplay.innerHTML;
-            opponentChoiceDisplay.innerHTML = `<span style="animation: sparkle-in-circle 1.2s ease-in-out;">✨</span>`;
+            statusContainer.style.animation = `sparkle-in-circle 1.2s ease-in-out`;
             setTimeout(() => {
-                if(opponentChoiceDisplay.innerHTML.includes('sparkle')) {
-                   opponentChoiceDisplay.innerHTML = originalContent;
-                }
+                statusContainer.style.animation = '';
             }, 1200);
 
             if (magicSettings.mode === 'magician') {
@@ -363,12 +354,6 @@
             return opponentChoice;
         }
         
-        function updateChoiceHighlight(choice) {
-            choiceBtns.forEach(b => b.classList.remove('selected'));
-            const btnToSelect = document.querySelector(`.choice-btn[data-choice="${choice}"]`);
-            if (btnToSelect) btnToSelect.classList.add('selected');
-        }
-
         onAuthStateChanged(auth, async (user) => {
             try {
                 loadingText.textContent = 'Memuat aset...';
@@ -412,48 +397,37 @@
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
                 
-                const currentRound = game.currentRound || 0;
-                if(game.magicSettings?.isActive) {
-                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${game.magicSettings.totalRounds}`;
-                } else {
-                    roundCounterEl.textContent = '';
-                }
-                
-                // Logika untuk menampilkan status pilihan lawan
-                if (game.magicSettings?.isActive && game.magicSettings.mode === 'peek' && opponent.choice && !me.choice) {
-                    // Mode Peek: Tampilkan gambar pilihan lawan
-                    opponentChoiceDisplay.innerHTML = `<img src="./images/${opponent.choice}.jpg" alt="${opponent.choice}">`;
-                    opponentChoiceDisplay.classList.remove("chosen");
+                const isPeekActive = game.magicSettings?.isActive && game.magicSettings.mode === 'peek';
+                if (isPeekActive && opponent.choice && !me.choice) {
+                    const choiceText = {rock: 'Batu', paper: 'Kertas', scissors: 'Gunting'};
+                    statusText.textContent = `Lawan memilih: ${choiceText[opponent.choice]}`;
+                    statusContainer.classList.add('peek');
+                    statusContainer.classList.remove('ready');
                 } else if (opponent.choice) {
-                    // Lawan sudah memilih (tapi kita tidak bisa lihat)
-                    opponentChoiceDisplay.textContent = '✓';
-                    opponentChoiceDisplay.classList.add("chosen");
+                    statusText.textContent = 'Lawan Sudah Memilih!';
+                    statusContainer.classList.add('ready');
+                    statusContainer.classList.remove('peek');
                 } else {
-                    // Lawan belum memilih
-                    opponentChoiceDisplay.innerHTML = `?`;
-                    opponentChoiceDisplay.classList.remove("chosen");
+                    statusText.textContent = 'Menunggu Lawan Memilih...';
+                    statusContainer.classList.remove('ready', 'peek');
                 }
 
-                if (game.gameState === 'finished') {
+                if (game.gameState === 'finished' && resultPopup.classList.contains('hidden')) {
                     showResultPopup(game);
-                } else {
+                } else if (game.gameState !== 'finished') {
                     resultPopup.classList.add('hidden');
                 }
 
-                // **KODE PERBAIKAN BUG PEEK MODE ADA DI SINI**
                 if (game.gameState === 'waiting' && me.choice && opponent.choice) {
                     const isMagicianFinalizing = game.magicSettings?.isActive && game.magicSettings.mode === 'magician' && me.choice === 'chosen';
 
                     if (isMagicianFinalizing) {
-                        // Jika mode magician aktif dan sedang menunggu pilihan "ajaib"
-                        const desiredOutcome = magicianPlan[currentRound];
+                        const desiredOutcome = magicianPlan[game.currentRound || 0];
                         const magicalChoice = getMagicianChoice(opponent.choice, desiredOutcome);
-                        updateChoiceHighlight(magicalChoice);
                         setTimeout(() => {
                             updateDoc(doc(db, 'games', gameId), { 'player1.choice': magicalChoice });
                         }, 500);
                     } else {
-                        // Untuk semua kasus lain (Normal, Peek, atau Magician setelah pilihan ditetapkan)
                         determineWinner(gameId, game);
                     }
                 }
@@ -469,10 +443,35 @@
             if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) { winner = 'player1'; } 
             else if (p1c !== p2c) { winner = 'player2'; }
 
+            if (game.magicSettings?.isActive) {
+                resultRoundInfo.textContent = `Ronde: ${game.currentRound + 1} / ${game.magicSettings.totalRounds}`;
+                resultRoundInfo.style.display = 'inline-block';
+            } else {
+                resultRoundInfo.style.display = 'none';
+            }
+
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player1' ? 'KAMU MENANG!' : 'KAMU KALAH!');
             resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player1' ? './images/win.jpg' : './images/lose.jpg');
             resultChoicesDisplay.innerHTML = `<img src="./images/${p1c}.jpg" alt="${p1c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p2c}.jpg" alt="${p2c}">`;
+            
             resultPopup.classList.remove('hidden');
+
+            resultPopup.onclick = () => {
+                resultPopup.classList.add('hidden');
+                resultPopup.onclick = null;
+
+                if (game.magicSettings?.isActive) {
+                    const isMagicModeOver = (game.currentRound + 1) >= game.magicSettings.totalRounds;
+                    
+                    if (isMagicModeOver) {
+                        showSummaryPopup(game);
+                    } else {
+                        resetRound(game);
+                    }
+                } else {
+                    resetRound(game);
+                }
+            };
         }
         
         function showSummaryPopup(game) {
@@ -508,14 +507,9 @@
         }
 
         async function resetRound(gameData) {
-            const currentRound = gameData.currentRound || 0;
             const updates = { 'player1.choice': null, 'player2.choice': null, 'gameState': 'waiting' };
             
             if (gameData.magicSettings?.isActive) {
-                if (currentRound + 1 >= gameData.magicSettings.totalRounds) {
-                    showSummaryPopup(gameData);
-                    return; // Stop round reset, show summary instead
-                }
                 updates.currentRound = increment(1);
             }
 
@@ -554,18 +548,10 @@
             btn.addEventListener('click', async () => {
                 if (!currentGameId || btn.classList.contains('disabled')) return;
                 const choice = btn.dataset.choice;
-                updateChoiceHighlight(choice);
                 let finalChoice = choice;
                 if (magicSettings && magicSettings.isActive && magicSettings.mode === 'magician') { finalChoice = 'chosen'; }
                 await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': finalChoice });
             });
-        });
-        
-        closePopupBtn.addEventListener('click', async () => {
-            resultPopup.classList.add('hidden');
-            const gameRef = doc(db, 'games', currentGameId);
-            const gameSnap = await getDoc(gameRef);
-            if(gameSnap.exists()) resetRound(gameSnap.data());
         });
 
         newGameBtn.addEventListener('click', () => { summaryModal.classList.add('hidden'); stopGame(); });
