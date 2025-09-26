@@ -291,7 +291,7 @@
         }
 
         function activateMagic() {
-            if (!magicSettings) return;
+            if (!magicSettings || magicSettings.isActive) return;
             
             magicSettings.isActive = true;
             const originalContent = opponentChoiceDisplay.innerHTML;
@@ -454,10 +454,12 @@
         }
 
         async function resetRound(gameData) {
-            currentRound++;
-            if (magicSettings && magicSettings.isActive && currentRound >= magicSettings.totalRounds) {
-                showSummaryPopup(gameData);
-                return;
+            if (magicSettings && magicSettings.isActive) {
+                 currentRound++;
+                if (currentRound >= magicSettings.totalRounds) {
+                    showSummaryPopup(gameData);
+                    return;
+                }
             }
             if (currentGameId) {
                 await updateDoc(doc(db, 'games', currentGameId), { 'player1.choice': null, 'player2.choice': null, 'gameState': 'waiting' });
