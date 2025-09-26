@@ -91,8 +91,11 @@
             left: 0;
             width: 100%;
             padding: 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
-        #status-container {
+        #status-container, #stop-game-btn {
             background-color: white;
             color: #4a5568;
             text-align: center;
@@ -101,6 +104,15 @@
             font-weight: 600;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
+            width: 100%;
+        }
+        #stop-game-btn {
+            background-color: #FEE2E2; /* red-100 */
+            color: #C53030; /* red-700 */
+            font-family: 'Poppins', sans-serif;
+        }
+        #stop-game-btn:hover {
+            background-color: #FED7D7; /* red-200 */
         }
         #status-container.ready {
             background-color: #C6F6D5;
@@ -194,7 +206,6 @@
     </div>
     
     <div id="game-screen" class="screen hidden">
-        <button id="stop-game-btn" class="hidden absolute top-5 right-5 bg-red-500 text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-red-600 transition z-10">Hentikan</button>
         <div class="top-bar font-title">
             <p id="my-score">0</p>
             <p class="text-2xl text-gray-400">VS</p>
@@ -206,6 +217,7 @@
             <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
         </div>
         <div class="bottom-bar">
+            <button id="stop-game-btn" class="hidden">Hentikan Permainan</button>
             <div id="status-container">
                 <p id="status-text">Menunggu Lawan...</p>
             </div>
@@ -323,6 +335,7 @@
         async function activateMagic() {
             if (!magicSettings || magicSettings.isActive) return;
             
+            showNotification("Mode Performance Aktif!", false);
             magicSettings.isActive = true;
             
             if (currentGameId) {
@@ -333,11 +346,6 @@
                     "currentRound": 0
                 });
             }
-
-            statusContainer.style.animation = `sparkle-in-circle 1.2s ease-in-out`;
-            setTimeout(() => {
-                statusContainer.style.animation = '';
-            }, 1200);
 
             if (magicSettings.mode === 'magician') {
                 magicianPlan = [];
