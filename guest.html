@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
-        /* Menggunakan font kustom */
         body {
             font-family: 'Poppins', sans-serif;
             -webkit-tap-highlight-color: transparent;
@@ -22,7 +21,7 @@
         .screen, .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 2.5rem 2rem;
+            justify-content: center; align-items: center;
             transition: opacity 0.4s ease-in-out;
             backface-visibility: hidden;
         }
@@ -35,51 +34,63 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        #game-screen { 
-            justify-content: center;
-            background-color: #F7FAFC; 
-            padding: 0;
+
+        /* Tata Letak Game Baru */
+        #game-screen {
+            background-color: #F7FAFC;
         }
-        .player-area { width: 100%; text-align: center; }
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            font-size: 2.25rem; /* 36px */
+            color: #2d3748; /* text-gray-800 */
+        }
+        .center-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+        }
+        #status-container {
+            background-color: white;
+            color: #4a5568; /* text-gray-700 */
+            text-align: center;
+            padding: 0.75rem 1rem;
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        #status-container.ready {
+            background-color: #C6F6D5; /* green-200 */
+            color: #2F855A; /* green-800 */
+        }
         
         .choice-btn {
-            background-color: white; border-radius: 50%; 
-            padding: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
-            margin-bottom: 0;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+            background-color: white; border-radius: 50%; padding: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .choice-btn:hover { transform: scale(1.1); }
-        .choice-btn img { 
-            width: 48px; 
-            height: 48px; 
-        }
-        .choice-btn.selected {
-            box-shadow: 0 0 0 4px #FF7E5F, 0 6px 20px rgba(255, 126, 95, 0.5);
-            transform: scale(1.1);
-        }
+        .choice-btn:active { transform: scale(1.05); }
+        .choice-btn img { width: 60px; height: 60px; }
         .choice-btn.disabled { opacity: 0.5; pointer-events: none; }
-
-        #opponent-choice-display {
-            width: 100px; height: 100px;
-            margin: 0 auto;
-            border: 4px dashed #E2E8F0;
-            background-color: transparent;
-            color: #CBD5E0;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 3rem; transition: all 0.3s;
-        }
-        #opponent-choice-display.chosen {
-            border-style: solid;
-            border-color: #68D391;
-            color: #68D391;
-        }
-        #opponent-choice-display img { 
-            width: 60px; 
-            height: 60px;
-        }
-
+        
+        /* Modal & Pop-up styling */
         .modal-card {
             background-color: white; border-radius: 1.5rem; padding: 2rem;
             text-align: center; width: 90%; max-width: 350px;
@@ -87,30 +98,23 @@
             transform: scale(0.9); animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .close-btn {
-            position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
-            background-color: #F1F5F9; border-radius: 50%; color: #64748B;
-            font-size: 1.5rem; line-height: 1; transition: background-color 0.2s, transform 0.2s;
+        #result-round-info {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 1rem;
         }
-        .close-btn:hover { background-color: #E2E8F0; transform: rotate(90deg); }
         #result-choices-display {
             display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;
         }
         #result-choices-display img { width: 50px; height: 50px; background-color: #F1F5F9; padding: 0.5rem; border-radius: 50%; }
-        
-        #round-counter {
-            position: absolute; top: 1rem; left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.9rem; font-weight: 600; color: #94a3b8;
-            background-color: rgba(255,255,255,0.7); backdrop-filter: blur(4px);
-            padding: 0.35rem 1rem; border-radius: 9999px;
-        }
         .primary-btn {
             background: linear-gradient(135deg, #FF7E5F, #FEB47B);
             transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(254, 180, 123, 0.4);
-        }
-        .vs-text {
-            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -119,40 +123,37 @@
     <div id="game-over-screen" class="screen hidden bg-gray-50 text-center">
         <h1 class="text-3xl text-gray-700">Permainan Selesai</h1>
         <p class="text-gray-500 mt-2">Host telah menghentikan permainan. Terima kasih sudah bermain!</p>
-        <p class="absolute bottom-4 text-xs text-gray-400">Concepted by Heri Sanjaya</p>
     </div>
     
     <div id="game-screen" class="screen hidden">
-        <div class="w-full max-w-sm h-full flex flex-col justify-between relative p-4">
-            <div id="round-counter"></div>
-            
-            <div class="player-area text-center">
-                <div id="opponent-choice-display" class="font-title mb-4 text-4xl">?</div>
-                <div>
-                    <p class="text-gray-500 text-lg">Lawan</p>
-                    <p class="font-title text-4xl text-gray-800" id="opponent-score">0</p>
-                </div>
-            </div>
+        <div class="top-bar font-title">
+            <p id="my-score">0</p>
+            <p class="text-2xl text-gray-400">VS</p>
+            <p id="opponent-score">0</p>
+        </div>
 
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <p class="vs-text font-title text-5xl text-gray-300">VS</p>
-            </div>
-            
-            <div class="player-area text-center">
-                <div>
-                    <p class="font-title text-4xl text-gray-800" id="my-score">0</p>
-                    <p class="text-gray-500 text-lg">Kamu</p>
-                </div>
-                <div id="choice-container" class="flex justify-center items-center gap-4 mt-4">
-                    <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
-                    <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
-                    <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
-                </div>
+        <div class="center-stage">
+            <button class="choice-btn" data-choice="rock"><img src="./images/rock.jpg" alt="Batu"></button>
+            <button class="choice-btn" data-choice="paper"><img src="./images/paper.jpg" alt="Kertas"></button>
+            <button class="choice-btn" data-choice="scissors"><img src="./images/scissors.jpg" alt="Gunting"></button>
+        </div>
+
+        <div class="bottom-bar">
+            <div id="status-container">
+                <p id="status-text">Menunggu Lawan...</p>
             </div>
         </div>
     </div>
     
-    <div id="result-popup" class="modal-overlay hidden"><div class="modal-card"><button id="close-popup-btn" class="close-btn">&times;</button><h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2><img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4"><div id="result-choices-display"></div></div></div>
+    <div id="result-popup" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div id="result-round-info"></div>
+            <h2 id="result-text" class="font-title text-4xl text-gray-800 mb-2"></h2>
+            <img id="result-image" src="" alt="Hasil" class="w-32 h-32 mx-auto my-4">
+            <div id="result-choices-display"></div>
+        </div>
+    </div>
+
     <div id="summary-modal" class="modal-overlay hidden"><div class="modal-card"><h2 class="font-title text-4xl text-gray-800 mb-4">Permainan Selesai</h2><div id="summary-details" class="space-y-4 text-left"></div><button id="close-summary-btn" class="w-full h-[52px] flex justify-center items-center text-white rounded-lg primary-btn text-lg tracking-wider mt-6">Tutup</button></div></div>
 
     <script type="module">
@@ -171,20 +172,21 @@
         const screens = { loading: document.getElementById('loading-screen'), game: document.getElementById('game-screen'), gameOver: document.getElementById('game-over-screen') };
         const myScoreEl = document.getElementById('my-score');
         const opponentScoreEl = document.getElementById('opponent-score');
-        const opponentChoiceDisplay = document.getElementById('opponent-choice-display');
         const choiceBtns = document.querySelectorAll('.choice-btn');
+        const statusContainer = document.getElementById('status-container');
+        const statusText = document.getElementById('status-text');
+        
         const resultPopup = document.getElementById('result-popup');
         const resultText = document.getElementById('result-text');
         const resultImage = document.getElementById('result-image');
         const resultChoicesDisplay = document.getElementById('result-choices-display');
-        const closePopupBtn = document.getElementById('close-popup-btn');
-        const roundCounterEl = document.getElementById('round-counter');
+        const resultRoundInfo = document.getElementById('result-round-info');
+        
         const summaryModal = document.getElementById('summary-modal');
         const summaryDetails = document.getElementById('summary-details');
         const closeSummaryBtn = document.getElementById('close-summary-btn');
 
         function showScreen(screen) { Object.values(screens).forEach(s => s.classList.add('hidden')); screen.classList.remove('hidden'); }
-        function updateChoiceHighlight(choice) { choiceBtns.forEach(b => b.classList.remove('selected')); const btn = document.querySelector(`.choice-btn[data-choice="${choice}"]`); if(btn) btn.classList.add('selected'); }
         
         onAuthStateChanged(auth, user => {
             if (user) {
@@ -238,34 +240,23 @@
                 myScoreEl.textContent = me.results?.wins ?? 0;
                 opponentScoreEl.textContent = opponent.results?.wins ?? 0;
 
-                const currentRound = game.currentRound || 0;
-                if(game.magicSettings?.isActive) {
-                    roundCounterEl.textContent = `Ronde: ${currentRound + 1} / ${game.magicSettings.totalRounds}`;
-                } else {
-                    roundCounterEl.textContent = '';
-                }
-
-                // Logika untuk menampilkan status pilihan lawan
+                // Logika Status Bar di Bawah
                 if (opponent.choice) {
-                    // Lawan sudah memilih (tapi kita tidak bisa lihat)
-                    opponentChoiceDisplay.textContent = '✓';
-                    opponentChoiceDisplay.classList.add("chosen");
+                    statusText.textContent = 'Lawan Sudah Memilih!';
+                    statusContainer.classList.add('ready');
                 } else {
-                    // Lawan belum memilih
-                    opponentChoiceDisplay.innerHTML = `?`;
-                    opponentChoiceDisplay.classList.remove("chosen");
+                    statusText.textContent = 'Menunggu Lawan Memilih...';
+                    statusContainer.classList.remove('ready');
                 }
 
-                if (game.gameState === 'finished') {
+                // Logika utama untuk menampilkan pop-up hasil
+                if (game.gameState === 'finished' && resultPopup.classList.contains('hidden')) {
                     showResultPopup(game);
-                } else {
+                } else if (game.gameState !== 'finished') {
                     resultPopup.classList.add('hidden');
                 }
-                
-                if (game.magicSettings?.isActive && currentRound >= game.magicSettings.totalRounds - 1 && game.gameState === 'finished') {
-                    showSummaryPopup(game);
-                }
 
+                // Matikan tombol jika kita sudah memilih atau game selesai
                 choiceBtns.forEach(btn => btn.classList.toggle('disabled', !!me.choice || game.gameState === 'finished'));
             });
         }
@@ -277,14 +268,36 @@
             if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) { winner = 'player1'; } 
             else if (p1c !== p2c) { winner = 'player2'; }
 
+            // Tampilkan Info Ronde jika Mode Sulap Aktif
+            if (game.magicSettings?.isActive) {
+                resultRoundInfo.textContent = `Ronde: ${game.currentRound + 1} / ${game.magicSettings.totalRounds}`;
+                resultRoundInfo.style.display = 'inline-block';
+            } else {
+                resultRoundInfo.style.display = 'none';
+            }
+
             resultText.textContent = (winner === 'draw') ? 'SERI!' : (winner === 'player2' ? 'KAMU MENANG!' : 'KAMU KALAH!');
             resultImage.src = (winner === 'draw') ? './images/draw.jpg' : (winner === 'player2' ? './images/win.jpg' : './images/lose.jpg');
             resultChoicesDisplay.innerHTML = `<img src="./images/${p2c}.jpg" alt="${p2c}"><span class="font-title text-2xl text-gray-400">vs</span><img src="./images/${p1c}.jpg" alt="${p1c}">`;
+            
             resultPopup.classList.remove('hidden');
+
+            // **LOGIKA BARU**: Pop-up hanya akan tertutup jika diklik
+            // Dan akan memicu modal summary jika ini adalah ronde terakhir
+            resultPopup.onclick = () => {
+                resultPopup.classList.add('hidden');
+                resultPopup.onclick = null; // Hapus listener setelah digunakan
+
+                // Cek apakah ini ronde terakhir dari mode sulap
+                const isMagicModeOver = game.magicSettings?.isActive && (game.currentRound + 1) >= game.magicSettings.totalRounds;
+                if (isMagicModeOver) {
+                    // Tampilkan modal summary setelah pop-up terakhir ditutup
+                    showSummaryPopup(game);
+                }
+            };
         }
 
         function showSummaryPopup(game) {
-            resultPopup.classList.add('hidden');
             const me = game.player2;
             const opponent = game.player1;
             const myResults = me.results || { wins: 0, losses: 0, draws: 0 };
@@ -305,14 +318,10 @@
             btn.addEventListener('click', async () => {
                 if (!currentGameId || btn.classList.contains('disabled')) return;
                 const choice = btn.dataset.choice;
-                updateChoiceHighlight(choice);
                 await updateDoc(doc(db, 'games', currentGameId), { 'player2.choice': choice });
             });
         });
         
-        closePopupBtn.addEventListener('click', () => {
-            resultPopup.classList.add('hidden');
-        });
         closeSummaryBtn.addEventListener('click', () => {
             summaryModal.classList.add('hidden');
         });
