@@ -123,11 +123,12 @@
             pointer-events: none; /* Pastikan tidak menghalangi klik */
         }
         #magic-indicator.show {
-            animation: sparkle 1s ease-in-out;
+            animation: sparkle 1.2s ease-in-out forwards;
         }
         @keyframes sparkle { 
-            0%, 100% { opacity: 0; transform: translateX(-50%) scale(0.5); } 
-            50% { opacity: 1; transform: translateX(-50%) scale(1.2); } 
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); } 
+            10%, 90% { opacity: 1; transform: translateX(-50%) scale(1.2); } 
+            100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
         }
     </style>
 </head>
@@ -283,7 +284,6 @@
         // --- STATE GLOBAL ---
         let unsubscribeGameListener = null;
         let currentGameId = null;
-        let currentPlayerId = null;
         let magicSettings = null;
         let magicianPlan = [];
         let currentRound = 0;
@@ -356,7 +356,30 @@
         }
         
         // --- LOGIKA SULAP ---
-        function saveMagicSettings() {
+        async function loadMagicSettings(uid) {
+            // Untuk menyimpan pengaturan sulap di Firestore,
+            // pastikan Anda punya Security Rule berikut:
+            // match /user_settings/{userId} {
+            //   allow read, write: if request.auth.uid == userId;
+            // }
+            const settingsRef = doc(db, 'user_settings', uid);
+            const docSnap = await getDoc(settingsRef);
+
+            if (docSnap.exists()) {
+                magicSettings = docSnap.data();
+                // Update form dengan data yang tersimpan
+                document.getElementById('total-rounds-input').value = magicSettings.totalRounds;
+                document.getElementById('wins-input').value = magicSettings.targetWins;
+                document.getElementById('losses-input').value = magicSettings.targetLosses;
+                document.getElementById('draws-input').value = magicSettings.targetDraws;
+                document.querySelector(`input[name="magic-mode"][value="${magicSettings.mode}"]`).checked = true;
+            } else {
+                // Buat pengaturan default jika tidak ada
+                magicSettings = { totalRounds: 5, targetWins: 2, targetLosses: 2, targetDraws: 1, mode: 'magician', isActive: false };
+            }
+        }
+
+        async function saveMagicSettings() {
             const totalRounds = parseInt(document.getElementById('total-rounds-input').value);
             const wins = parseInt(document.getElementById('wins-input').value);
             const losses = parseInt(document.getElementById('losses-input').value);
@@ -371,38 +394,37 @@
                 return false;
             }
 
-            magicSettings = {
+            const newSettings = {
                 totalRounds,
                 targetWins: wins,
                 targetLosses: losses,
                 targetDraws: draws,
                 mode: document.querySelector('input[name="magic-mode"]:checked').value,
-                isActive: false
             };
-            showNotification("Pengaturan sulap disimpan!", false);
-            return true;
+            
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Pengguna tidak login");
+                const settingsRef = doc(db, 'user_settings', user.uid);
+                await setDoc(settingsRef, newSettings);
+                
+                magicSettings = { ...newSettings, isActive: false }; // Update state lokal
+                showNotification("Pengaturan sulap disimpan!", false);
+                return true;
+            } catch (error) {
+                console.error("Gagal menyimpan pengaturan:", error);
+                showNotification("Gagal menyimpan pengaturan.", true);
+                return false;
+            }
         }
 
         function activateMagic() {
-            console.log("Mencoba mengaktifkan mode sulap...");
-            if (!magicSettings) {
-                console.log("Gagal: Pengaturan sulap belum diatur.");
-                return;
-            }
-            if (magicSettings.isActive) {
-                 console.log("Gagal: Mode sulap sudah aktif.");
-                return;
-            }
+            if (!magicSettings || magicSettings.isActive) return;
             
-            console.log("Mode sulap BERHASIL diaktifkan!");
             magicSettings.isActive = true;
-            
-            magicIndicator.classList.remove('hidden');
             magicIndicator.classList.add('show');
-            setTimeout(() => {
-                magicIndicator.classList.remove('show');
-                magicIndicator.classList.add('hidden');
-            }, 1000);
+            
+            console.log("Mode sulap diaktifkan!");
 
             if (magicSettings.mode === 'magician') {
                 magicianPlan = [];
@@ -437,15 +459,15 @@
                 loadingText.textContent = 'Memuat...';
 
                 if (user) {
-                    currentPlayerId = user.uid;
+                    // Jalankan pembersihan di latar belakang tanpa menunggu
                     const gamesRef = collection(db, "games");
-                    const q1 = query(gamesRef, where("player1.uid", "==", user.uid));
-                    const staleGames = await getDocs(q1);
-                    staleGames.forEach(async (gameDoc) => {
-                        await deleteDoc(doc(db, "games", gameDoc.id));
+                    const q = query(gamesRef, where("player1.uid", "==", user.uid));
+                    getDocs(q).then(staleGames => {
+                        staleGames.forEach(gameDoc => deleteDoc(doc(db, "games", gameDoc.id)));
                     });
                     
                     if (!user.isAnonymous) {
+                        await loadMagicSettings(user.uid);
                         userEmailSpan.textContent = user.email;
                         showScreen(screens.menu);
                     } else {
@@ -472,6 +494,7 @@
             const gameDocRef = doc(db, "games", gameId);
 
             unsubscribeGameListener = onSnapshot(gameDocRef, (docSnap) => {
+                const user = auth.currentUser;
                 if (!docSnap.exists()) {
                     if(unsubscribeGameListener) {
                         unsubscribeGameListener();
@@ -479,7 +502,7 @@
                     }
                     currentGameId = null;
                     showNotification("Permainan telah berakhir.", false);
-                    if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                    if (user && !user.isAnonymous) {
                         showScreen(screens.menu);
                     }
                     return;
@@ -489,10 +512,9 @@
                 const me = game.player1;
                 const opponent = game.player2;
                 
-                stopGameBtn.classList.toggle('hidden', !(me && me.uid === currentPlayerId));
+                stopGameBtn.classList.toggle('hidden', !(me && me.uid === user.uid));
 
                 if (!me) return;
-
                 if (!opponent) {
                     showScreen(screens.waiting);
                     return;
@@ -558,7 +580,6 @@
             const p1c = game.player1.choice;
             const p2c = game.player2.choice;
             let winner = 'draw';
-
             if ((p1c === 'rock' && p2c === 'scissors') || (p1c === 'paper' && p2c === 'rock') || (p1c === 'scissors' && p2c === 'paper')) {
                 winner = 'player1';
             } else if (p1c !== p2c) {
@@ -576,6 +597,7 @@
 
         async function resetRound() {
             if (currentGameId) {
+                currentRound++; // Pindahkan increment ronde ke sini
                 if (magicSettings && magicSettings.isActive && currentRound >= magicSettings.totalRounds) {
                     showNotification("Permainan selesai sesuai pengaturan.", false);
                     setTimeout(stopGame, 1000);
@@ -597,7 +619,9 @@
                     unsubscribeGameListener = null;
                 }
                 currentGameId = null;
-                await deleteDoc(doc(db, "games", gameIdToDelete));
+                try {
+                    await deleteDoc(doc(db, "games", gameIdToDelete));
+                } catch (e) { console.error("Gagal menghapus game:", e) }
                 showScreen(screens.menu);
             }
         }
@@ -605,9 +629,10 @@
         // --- EVENT LISTENERS ---
         settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-        settingsForm.addEventListener('submit', (e) => {
+        settingsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (saveMagicSettings()) {
+            const success = await saveMagicSettings();
+            if (success) {
                 settingsModal.classList.add('hidden');
             }
         });
@@ -618,7 +643,6 @@
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             if (tapLength < 300 && tapLength > 0) {
-                console.log("Double tap terdeteksi via touchend!");
                 e.preventDefault(); 
                 activateMagic();
             }
@@ -627,7 +651,6 @@
 
         gameScreen.addEventListener('dblclick', (e) => {
             if (e.target.closest('button')) return;
-            console.log("Double tap terdeteksi via dblclick!");
             activateMagic();
         });
 
@@ -648,9 +671,6 @@
         
         closePopupBtn.addEventListener('click', () => {
             resultPopup.classList.add('hidden');
-            if (magicSettings && magicSettings.isActive) {
-                currentRound++;
-            }
             resetRound();
         });
 
